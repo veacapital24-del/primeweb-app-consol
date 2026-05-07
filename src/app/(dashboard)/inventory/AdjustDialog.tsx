@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { adjustStock, bulkAdjustStock, ADJUST_REASONS, type AdjustReason } from './actions'
+import { adjustStock, bulkAdjustStock } from './actions'
+import { ADJUST_REASONS, type AdjustReason } from './reasons'
 
 export type AdjustTarget = {
   id: string

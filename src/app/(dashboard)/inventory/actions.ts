@@ -2,19 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { adminClient } from '@/lib/supabase'
-
-// Canonical adjustment reasons. Every stock change goes through this list so
-// the movements log stays meaningful.
-export const ADJUST_REASONS = [
-  { value: 'receive',          label: 'Receive shipment',     hint: 'New stock from supplier (PO arrival)' },
-  { value: 'count_correction', label: 'Count correction',     hint: 'Physical count differs from system' },
-  { value: 'damage',           label: 'Damage / write-off',   hint: 'Broken, expired, or unsellable' },
-  { value: 'return',           label: 'Customer return',      hint: 'Returned by customer back to stock' },
-  { value: 'transfer_out',     label: 'Transfer out',         hint: 'Moved to another location' },
-  { value: 'other',            label: 'Other',                hint: 'Manual adjustment with note' },
-] as const
-
-export type AdjustReason = typeof ADJUST_REASONS[number]['value']
+import type { AdjustReason } from './reasons'
 
 type AdjustInput = {
   productId: string
@@ -70,7 +58,13 @@ export async function bulkAdjustStock(input: BulkInput) {
   if (!input.productIds.length) return
   if (!Number.isFinite(input.qty)) throw new Error('Quantity is required')
   for (const id of input.productIds) {
-    await applyOne({ ...input, productId: id })
+    await applyOne({
+      productId: id,
+      mode: input.mode,
+      qty: input.qty,
+      reason: input.reason,
+      note: input.note,
+    })
   }
   revalidatePath('/inventory')
   revalidatePath('/')
