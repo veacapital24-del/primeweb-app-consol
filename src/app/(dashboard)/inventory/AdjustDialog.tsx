@@ -27,7 +27,11 @@ export function AdjustDialog({ targets, open, onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
 
-  // Reset whenever the dialog opens for a fresh target
+  // Stable key derived from targets — used to reset state when the dialog
+  // re-opens for a different selection. Computed before the early-return so
+  // it runs every render, but useEffect only re-runs when the value changes.
+  const targetKey = targets.map((t) => t.id).join(',')
+
   useEffect(() => {
     if (!open) return
     setReason('receive')
@@ -35,13 +39,13 @@ export function AdjustDialog({ targets, open, onClose }: Props) {
     setQty(1)
     setNote('')
     setError(null)
-  }, [open, targets.map((t) => t.id).join(',')])
+  }, [open, targetKey])
 
   if (!open || targets.length === 0) return null
 
   const isBulk = targets.length > 1
-  const single = targets[0]
-  const totalCurrent = targets.reduce((s, t) => s + t.available, 0)
+  const single = targets[0]!
+  const totalCurrent = targets.reduce((s, t) => s + (t?.available ?? 0), 0)
 
   // For preview on a single product
   const after = !isBulk
