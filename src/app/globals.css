@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  /* Match storefront brand */
+  --color-prime-50:  #ecf5ee;
+  --color-prime-100: #d3ebd9;
+  --color-prime-200: #aed8b9;
+  --color-prime-300: #82c094;
+  --color-prime-400: #6baa82;
+  --color-prime-500: #3d8556;
+  --color-prime-600: #246340;
+  --color-prime-700: #16442a;
+  --color-prime-800: #0f3320;
+  --color-prime-900: #082014;
+
+  --color-flash-50:  #fff1f0;
+  --color-flash-500: #ef3b2c;
+  --color-flash-700: #b51d11;
+
+  --color-mint-100:  #d8f5e6;
+  --color-mint-500:  #18b466;
+  --color-mint-600:  #0d8c4a;
+
+  --color-amber-50:  #fff7e6;
+  --color-amber-500: #f5a623;
+  --color-amber-700: #a26307;
+
+  --color-ink-100:   #f0eee8;
+  --color-ink-200:   #e2dfd7;
+  --color-ink-300:   #cfcabe;
+  --color-ink-500:   #76746c;
+  --color-ink-700:   #353330;
+  --color-ink-900:   #11130f;
+  --color-ink-950:   #070906;
+
+  --color-paper:     #f8f5ee;
+  --color-paper-dim: #ede9de;
+
+  --color-canvas:    #f6f5f1;
+
+  --font-sans:    var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-display), ui-serif, Georgia, serif;
+}
+
+@layer base {
+  html, body {
+    background: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3 { letter-spacing: -0.02em; }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+::selection { background: var(--color-prime-200); color: var(--color-ink-900); }
+
+:where(button, a):focus-visible {
+  outline: 2px solid var(--color-prime-500);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
