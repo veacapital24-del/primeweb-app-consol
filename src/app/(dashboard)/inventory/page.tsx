@@ -14,6 +14,8 @@ type Row = {
   low_stock_threshold: number
 }
 
+type InventoryMeta = { product_id: string; updated_at: string | null }
+
 type Movement = {
   id: number
   product_id: string
@@ -21,9 +23,8 @@ type Movement = {
   reason: string | null
   before_qty: number | null
   after_qty: number | null
-  actor: string | null
   created_at: string
-  products: { name: string; sku: string } | null
+  products: { name: string } | null
 }
 
 type SearchParams = { filter?: 'all' | 'low' | 'out' | 'in-stock'; q?: string }
@@ -47,7 +48,13 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
 
   const { data: rows } = await query.returns<Row[]>()
 
-  // counts
+  const ids = (rows ?? []).map((r) => r.id)
+  const { data: invMeta } = ids.length > 0
+    ? await sb.from('inventory').select('product_id, updated_at').in('product_id', ids)
+    : { data: [] as InventoryMeta[] }
+  const updatedMap = new Map((invMeta ?? []).map((r) => [r.product_id, r.updated_at]))
+
+  // Counts for tabs + KPIs
   const { data: stockTotals } = await sb.from('product_stock').select('available').returns<Array<{ available: number }>>()
   const totals = stockTotals ?? []
   const counts = {
@@ -60,144 +67,222 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
 
   const tabs = [
     { key: 'all',      label: 'All',       count: counts.all },
-    { key: 'out',      label: 'Sold out',  count: counts.out },
-    { key: 'low',      label: 'Low stock', count: counts.low },
     { key: 'in-stock', label: 'In stock',  count: counts.inStock },
+    { key: 'low',      label: 'Low',       count: counts.low },
+    { key: 'out',      label: 'Sold out',  count: counts.out },
   ] as const
 
-  // Recent movements
   const { data: moves } = await sb
     .from('stock_movements')
-    .select('id, product_id, delta, reason, before_qty, after_qty, actor, created_at, products(name, sku)')
+    .select('id, product_id, delta, reason, before_qty, after_qty, created_at, products(name)')
     .order('created_at', { ascending: false })
-    .limit(15)
+    .limit(8)
     .returns<Movement[]>()
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Warehouse"
-        subtitle={`${counts.units.toLocaleString()} units across ${counts.all} products`}
+        subtitle={`${counts.units.toLocaleString()} units across ${counts.all} products · realtime stock`}
         breadcrumbs={[{ label: 'Operations' }, { label: 'Warehouse' }]}
       />
 
+      {/* ── Compact KPI strip ── */}
       <div className="grid gap-3 sm:grid-cols-4">
-        <Stat label="Total products"  value={counts.all}     tone="ink" />
-        <Stat label="Total units"     value={counts.units.toLocaleString()} tone="prime" />
-        <Stat label="Low stock"       value={counts.low}     tone="amber" />
-        <Stat label="Sold out"        value={counts.out}     tone={counts.out > 0 ? 'flash' : 'ink'} />
+        <Kpi
+          label="Total units"
+          value={counts.units.toLocaleString()}
+          icon={<IconBox />}
+        />
+        <Kpi
+          label="In stock"
+          value={counts.inStock}
+          accent="mint"
+          icon={<IconCheck />}
+        />
+        <Kpi
+          label="Low stock"
+          value={counts.low}
+          accent="amber"
+          icon={<IconAlert />}
+        />
+        <Kpi
+          label="Sold out"
+          value={counts.out}
+          accent={counts.out > 0 ? 'flash' : 'neutral'}
+          icon={<IconX />}
+        />
       </div>
 
-      <div className="mt-6 mb-4 flex flex-wrap items-center gap-3">
-        <form className="relative flex-1 min-w-[220px] max-w-md">
-          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search by name or SKU…"
-            className="w-full rounded-lg border border-ink-300 bg-paper py-2 pl-10 pr-3 text-sm focus:border-prime-500 focus:outline-none"
-          />
-          <input type="hidden" name="filter" value={filter} />
-        </form>
-        <div className="flex flex-wrap gap-1 text-xs font-semibold">
-          {tabs.map((t) => {
-            const params = new URLSearchParams()
-            if (q) params.set('q', q)
-            if (t.key !== 'all') params.set('filter', t.key)
-            const href = `/inventory${params.toString() ? `?${params.toString()}` : ''}`
-            const active = t.key === filter
-            return (
-              <Link
-                key={t.key}
-                href={href}
-                className={`rounded-full px-3 py-1.5 transition ${active ? 'bg-prime-700 text-paper' : 'bg-paper text-ink-700 hover:bg-ink-100'}`}
-              >
-                {t.label} <span className="opacity-60">({t.count})</span>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
+      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+        {/* ── Stock table ── */}
+        <section className="overflow-hidden rounded-2xl border border-ink-200 bg-paper">
+          {/* Toolbar */}
+          <header className="flex flex-wrap items-center gap-3 border-b border-ink-200 px-5 py-3">
+            <form className="relative flex-1 min-w-[200px]">
+              <svg className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input
+                name="q"
+                defaultValue={q}
+                placeholder="Search by name or SKU…"
+                className="w-full rounded-lg border border-ink-200 bg-paper py-1.5 pl-9 pr-3 text-sm placeholder:text-ink-500 focus:border-prime-500 focus:outline-none"
+              />
+              <input type="hidden" name="filter" value={filter} />
+            </form>
+            <div className="flex flex-wrap gap-1 text-xs font-semibold">
+              {tabs.map((t) => {
+                const active = t.key === filter
+                const params = new URLSearchParams()
+                if (q) params.set('q', q)
+                if (t.key !== 'all') params.set('filter', t.key)
+                const href = `/inventory${params.toString() ? `?${params.toString()}` : ''}`
+                return (
+                  <Link
+                    key={t.key}
+                    href={href}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition ${
+                      active
+                        ? 'bg-ink-900 text-paper'
+                        : 'text-ink-700 hover:bg-paper-dim/60'
+                    }`}
+                  >
+                    {t.label}
+                    <span className={active ? 'opacity-70' : 'text-ink-500'}>{t.count}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </header>
 
-      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-        {/* Stock table */}
-        <div className="overflow-hidden rounded-2xl border border-ink-300/60 bg-paper">
-          <table className="w-full text-sm">
-            <thead className="bg-paper-dim/60 text-left text-xs uppercase tracking-wider text-ink-500">
-              <tr>
-                <th className="px-4 py-3">Product</th>
-                <th className="px-4 py-3">On hand</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Quick set</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(rows ?? []).map((r) => (
-                <StockRow
-                  key={r.id}
-                  productId={r.id}
-                  productLink={`/products/${r.id}`}
-                  name={r.name}
-                  sku={r.sku}
-                  imageUrl={r.image_url}
-                  onHand={r.available}
-                  threshold={r.low_stock_threshold}
-                />
-              ))}
-              {(!rows || rows.length === 0) && (
-                <tr><td colSpan={4} className="px-4 py-12 text-center text-ink-500">No products in this view.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Movements log */}
-        <section className="rounded-2xl border border-ink-300/60 bg-paper p-5">
-          <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-ink-500">Recent movements</h2>
-          <ul className="space-y-3 text-xs">
-            {(moves ?? []).map((m) => (
-              <li key={m.id} className="border-l-2 border-ink-300 pl-3">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="truncate font-semibold text-ink-900">{m.products?.name ?? '—'}</span>
-                  <span className={`shrink-0 font-bold tabular-nums ${m.delta > 0 ? 'text-mint-600' : 'text-flash-700'}`}>
-                    {m.delta > 0 ? '+' : ''}{m.delta}
-                  </span>
-                </div>
-                <div className="text-ink-500">{m.reason ?? 'adjustment'} · {new Date(m.created_at).toLocaleString()}</div>
-                {m.before_qty != null && m.after_qty != null && (
-                  <div className="text-ink-500">{m.before_qty} → {m.after_qty}</div>
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] font-bold uppercase tracking-widest text-ink-500">
+                  <th className="px-5 py-2.5">Product</th>
+                  <th className="px-5 py-2.5">On hand</th>
+                  <th className="px-5 py-2.5">Status</th>
+                  <th className="px-5 py-2.5">Updated</th>
+                  <th className="px-5 py-2.5"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {(rows ?? []).map((r) => (
+                  <StockRow
+                    key={r.id}
+                    productId={r.id}
+                    productLink={`/products/${r.id}`}
+                    name={r.name}
+                    sku={r.sku}
+                    imageUrl={r.image_url}
+                    onHand={r.available}
+                    threshold={r.low_stock_threshold}
+                    updatedAt={updatedMap.get(r.id) ?? null}
+                  />
+                ))}
+                {(!rows || rows.length === 0) && (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-12 text-center text-sm text-ink-500">
+                      No products in this view.
+                    </td>
+                  </tr>
                 )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* ── Activity timeline ── */}
+        <aside className="overflow-hidden rounded-2xl border border-ink-200 bg-paper">
+          <header className="flex items-center justify-between border-b border-ink-200 px-5 py-3">
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-ink-500">Activity</h2>
+            <span className="text-[10px] text-ink-500">last 8</span>
+          </header>
+          <ol className="divide-y divide-ink-200">
+            {(moves ?? []).map((m) => (
+              <li key={m.id} className="flex items-start gap-3 px-5 py-3">
+                <div className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full ${m.delta > 0 ? 'bg-mint-100 text-mint-600' : 'bg-flash-50 text-flash-700'}`}>
+                  {m.delta > 0 ? '↑' : '↓'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="truncate text-xs font-semibold text-ink-900">{m.products?.name ?? 'Product'}</span>
+                    <span className={`shrink-0 text-xs font-bold tabular-nums ${m.delta > 0 ? 'text-mint-600' : 'text-flash-700'}`}>
+                      {m.delta > 0 ? '+' : ''}{m.delta}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-ink-500">
+                    {m.reason ?? 'adjustment'}
+                    {m.before_qty != null && m.after_qty != null && (
+                      <> · {m.before_qty}→{m.after_qty}</>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-ink-300">{relativeTime(m.created_at)}</div>
+                </div>
               </li>
             ))}
             {(!moves || moves.length === 0) && (
-              <li className="rounded-lg border border-dashed border-ink-300 p-4 text-center text-ink-500">
-                No movements logged yet. Adjustments and fulfilments will show up here.
+              <li className="px-5 py-8 text-center text-xs text-ink-500">
+                Stock changes will appear here.
               </li>
             )}
-          </ul>
-        </section>
+          </ol>
+        </aside>
       </div>
     </div>
   )
 }
 
-function Stat({ label, value, tone }: { label: string; value: number | string; tone: 'ink' | 'prime' | 'amber' | 'flash' }) {
-  const palette: Record<typeof tone, string> = {
-    ink:   'border-ink-300/60 bg-paper',
-    prime: 'border-prime-700 bg-prime-50',
-    amber: 'border-amber-500 bg-amber-50',
-    flash: 'border-flash-500 bg-flash-50',
-  }
-  const colors: Record<typeof tone, string> = {
-    ink: 'text-ink-900',
-    prime: 'text-prime-700',
-    amber: 'text-amber-700',
-    flash: 'text-flash-700',
-  }
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return 'just now'
+  if (min < 60) return `${min}m ago`
+  const hr = Math.floor(min / 60)
+  if (hr < 24) return `${hr}h ago`
+  const d = Math.floor(hr / 24)
+  if (d < 7) return `${d}d ago`
+  return new Date(iso).toLocaleDateString()
+}
+
+// ─── KPI tile ─────────────────────────────────────────────────────────────────
+function Kpi({
+  label,
+  value,
+  icon,
+  accent = 'neutral',
+}: {
+  label: string
+  value: number | string
+  icon: React.ReactNode
+  accent?: 'neutral' | 'mint' | 'amber' | 'flash'
+}) {
+  const ring  =
+    accent === 'mint'  ? 'ring-mint-500/20'  :
+    accent === 'amber' ? 'ring-amber-500/20' :
+    accent === 'flash' ? 'ring-flash-500/30' :
+                         'ring-ink-200'
+  const iconBg =
+    accent === 'mint'  ? 'bg-mint-100 text-mint-600'   :
+    accent === 'amber' ? 'bg-amber-50 text-amber-700'  :
+    accent === 'flash' ? 'bg-flash-50 text-flash-700'  :
+                         'bg-paper-dim text-ink-700'
   return (
-    <div className={`rounded-2xl border p-4 ${palette[tone]}`}>
-      <div className="text-[10px] font-bold uppercase tracking-widest text-ink-500">{label}</div>
-      <div className={`font-display mt-1 text-2xl font-black tabular-nums ${colors[tone]}`}>{value}</div>
+    <div className={`flex items-center gap-3 rounded-2xl bg-paper p-4 ring-1 ${ring}`}>
+      <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${iconBg}`}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-ink-500">{label}</div>
+        <div className="font-display mt-0.5 text-2xl font-black tabular-nums text-ink-900">{value}</div>
+      </div>
     </div>
   )
 }
+
+// ─── Inline icons ─────────────────────────────────────────────────────────────
+const ic = 'h-4 w-4'
+function IconBox()   { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3.3 8 8.7 5 8.7-5"/><path d="M12 13v9"/></svg> }
+function IconCheck() { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg> }
+function IconAlert() { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.7 3h16.96a2 2 0 0 0 1.7-3L13.7 3.86a2 2 0 0 0-3.4 0Z"/></svg> }
+function IconX()     { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> }
