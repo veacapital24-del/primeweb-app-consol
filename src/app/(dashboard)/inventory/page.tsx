@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { adminClient } from '@/lib/supabase'
 import { PageHeader } from '@/components/PageHeader'
-import { StockRow } from './StockRow'
+import { InventoryClient } from './InventoryClient'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,8 +53,11 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
     ? await sb.from('inventory').select('product_id, updated_at').in('product_id', ids)
     : { data: [] as InventoryMeta[] }
   const updatedMap = new Map((invMeta ?? []).map((r) => [r.product_id, r.updated_at]))
+  const enrichedRows = (rows ?? []).map((r) => ({
+    ...r,
+    updated_at: updatedMap.get(r.id) ?? null,
+  }))
 
-  // Counts for tabs + KPIs
   const { data: stockTotals } = await sb.from('product_stock').select('available').returns<Array<{ available: number }>>()
   const totals = stockTotals ?? []
   const counts = {
@@ -83,41 +86,19 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
     <div className="space-y-6">
       <PageHeader
         title="Warehouse"
-        subtitle={`${counts.units.toLocaleString()} units across ${counts.all} products · realtime stock`}
+        subtitle={`${counts.units.toLocaleString()} units across ${counts.all} products · adjust via reason-tracked flow`}
         breadcrumbs={[{ label: 'Operations' }, { label: 'Warehouse' }]}
       />
 
-      {/* ── Compact KPI strip ── */}
       <div className="grid gap-3 sm:grid-cols-4">
-        <Kpi
-          label="Total units"
-          value={counts.units.toLocaleString()}
-          icon={<IconBox />}
-        />
-        <Kpi
-          label="In stock"
-          value={counts.inStock}
-          accent="mint"
-          icon={<IconCheck />}
-        />
-        <Kpi
-          label="Low stock"
-          value={counts.low}
-          accent="amber"
-          icon={<IconAlert />}
-        />
-        <Kpi
-          label="Sold out"
-          value={counts.out}
-          accent={counts.out > 0 ? 'flash' : 'neutral'}
-          icon={<IconX />}
-        />
+        <Kpi label="Total units" value={counts.units.toLocaleString()} icon={<IconBox />} />
+        <Kpi label="In stock"    value={counts.inStock} accent="mint"  icon={<IconCheck />} />
+        <Kpi label="Low stock"   value={counts.low}     accent="amber" icon={<IconAlert />} />
+        <Kpi label="Sold out"    value={counts.out}     accent={counts.out > 0 ? 'flash' : 'neutral'} icon={<IconX />} />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
-        {/* ── Stock table ── */}
         <section className="overflow-hidden rounded-2xl border border-ink-200 bg-paper">
-          {/* Toolbar */}
           <header className="flex flex-wrap items-center gap-3 border-b border-ink-200 px-5 py-3">
             <form className="relative flex-1 min-w-[200px]">
               <svg className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -141,9 +122,7 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
                     key={t.key}
                     href={href}
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition ${
-                      active
-                        ? 'bg-ink-900 text-paper'
-                        : 'text-ink-700 hover:bg-paper-dim/60'
+                      active ? 'bg-ink-900 text-paper' : 'text-ink-700 hover:bg-paper-dim/60'
                     }`}
                   >
                     {t.label}
@@ -154,45 +133,9 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
             </div>
           </header>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-[11px] font-bold uppercase tracking-widest text-ink-500">
-                  <th className="px-5 py-2.5">Product</th>
-                  <th className="px-5 py-2.5">On hand</th>
-                  <th className="px-5 py-2.5">Status</th>
-                  <th className="px-5 py-2.5">Updated</th>
-                  <th className="px-5 py-2.5"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {(rows ?? []).map((r) => (
-                  <StockRow
-                    key={r.id}
-                    productId={r.id}
-                    productLink={`/products/${r.id}`}
-                    name={r.name}
-                    sku={r.sku}
-                    imageUrl={r.image_url}
-                    onHand={r.available}
-                    threshold={r.low_stock_threshold}
-                    updatedAt={updatedMap.get(r.id) ?? null}
-                  />
-                ))}
-                {(!rows || rows.length === 0) && (
-                  <tr>
-                    <td colSpan={5} className="px-5 py-12 text-center text-sm text-ink-500">
-                      No products in this view.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <InventoryClient rows={enrichedRows} />
         </section>
 
-        {/* ── Activity timeline ── */}
         <aside className="overflow-hidden rounded-2xl border border-ink-200 bg-paper">
           <header className="flex items-center justify-between border-b border-ink-200 px-5 py-3">
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-ink-500">Activity</h2>
@@ -223,7 +166,7 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
             ))}
             {(!moves || moves.length === 0) && (
               <li className="px-5 py-8 text-center text-xs text-ink-500">
-                Stock changes will appear here.
+                Adjustments will appear here.
               </li>
             )}
           </ol>
@@ -245,7 +188,6 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString()
 }
 
-// ─── KPI tile ─────────────────────────────────────────────────────────────────
 function Kpi({
   label,
   value,
@@ -280,7 +222,6 @@ function Kpi({
   )
 }
 
-// ─── Inline icons ─────────────────────────────────────────────────────────────
 const ic = 'h-4 w-4'
 function IconBox()   { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3.3 8 8.7 5 8.7-5"/><path d="M12 13v9"/></svg> }
 function IconCheck() { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg> }
