@@ -28,34 +28,6 @@ export default function IntegrationsPage() {
           </a>
         )}
       </Card>
-
-      <Card
-        title="WhatsApp Cloud API"
-        right={<Pill tone={process.env.WHATSAPP_ACCESS_TOKEN ? 'mint' : 'amber'}>
-          {process.env.WHATSAPP_ACCESS_TOKEN ? 'Connected' : 'Deep-link only'}
-        </Pill>}
-      >
-        <p className="text-sm text-ink-700">
-          Without the Cloud API token the storefront still works — the order button opens
-          <code className="mx-1 rounded bg-paper-dim px-1.5 py-0.5 text-[11px]">wa.me</code>
-          with a prefilled message. Set the secrets below to enable auto-confirmations.
-        </p>
-        <pre className="mt-3 overflow-x-auto rounded-xl bg-ink-900 px-4 py-3 font-mono text-[11px] leading-relaxed text-paper">
-{`# In Vercel → Settings → Environment Variables
-WHATSAPP_PHONE_NUMBER_ID=...
-WHATSAPP_ACCESS_TOKEN=...
-
-# Then deploy the edge functions
-supabase functions deploy whatsapp-webhook --no-verify-jwt
-supabase functions deploy whatsapp-send`}
-        </pre>
-      </Card>
-
-      <Card title="Vercel deployment">
-        <Row k="Storefront" v="primewebshop.prumira.com" />
-        <Row k="Admin"      v="primewebappconsol.prumira.com" />
-        <Row k="Pipeline"   v="GitHub push → auto-deploy" />
-      </Card>
     </div>
   )
 }
@@ -82,9 +54,7 @@ function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
 }
 
 function Pill({ tone, children }: { tone: 'mint' | 'amber'; children: React.ReactNode }) {
-  const cls = tone === 'mint'
-    ? 'bg-mint-100 text-mint-600'
-    : 'bg-amber-50 text-amber-700'
+  const cls = tone === 'mint' ? 'bg-mint-100 text-mint-600' : 'bg-amber-50 text-amber-700'
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${cls}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${tone === 'mint' ? 'bg-mint-500' : 'bg-amber-500'}`} />
