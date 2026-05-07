@@ -86,7 +86,7 @@ export default async function ReelsListPage() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-4 gap-1 text-center text-[10px]">
+                <div className="grid grid-cols-2 gap-1 text-center text-[10px] sm:grid-cols-4">
                   {(['view', 'add_to_cart', 'whatsapp_click', 'order'] as const).map((k) => (
                     <div key={k} className="rounded-md bg-ink-100 px-1 py-1">
                       <div className="text-sm font-bold tabular-nums">{stats[k] ?? 0}</div>

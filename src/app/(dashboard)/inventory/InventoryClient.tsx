@@ -57,8 +57,8 @@ export function InventoryClient({ rows }: { rows: Row[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className={`overflow-x-auto ${someSelected ? 'pb-28 md:pb-0' : ''}`}>
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="text-left text-[11px] font-bold uppercase tracking-widest text-ink-500">
               <th className="px-5 py-2.5 w-10">
@@ -100,26 +100,26 @@ export function InventoryClient({ rows }: { rows: Row[] }) {
 
       {/* Bulk action bar */}
       {someSelected && (
-        <div className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4">
-          <div className="flex w-full max-w-3xl items-center gap-3 rounded-2xl bg-ink-900 px-4 py-3 text-paper shadow-2xl shadow-ink-900/30">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-paper text-xs font-black text-ink-900">
+        <div className="fixed inset-x-0 bottom-3 z-30 flex justify-center px-3 sm:bottom-4 sm:px-4">
+          <div className="flex w-full max-w-3xl items-center gap-2 rounded-2xl bg-ink-900 px-3 py-2.5 text-paper shadow-2xl shadow-ink-900/30 sm:gap-3 sm:px-4 sm:py-3">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-paper text-xs font-black text-ink-900">
               {selected.size}
             </span>
-            <div className="flex-1 text-sm">
-              <div className="font-bold">{selected.size} product{selected.size > 1 ? 's' : ''} selected</div>
-              <div className="text-xs text-paper/70 tabular-nums">{selectedUnits} units total</div>
+            <div className="min-w-0 flex-1 text-sm">
+              <div className="truncate font-bold">{selected.size} product{selected.size > 1 ? 's' : ''} selected</div>
+              <div className="hidden text-xs text-paper/70 tabular-nums sm:block">{selectedUnits} units total</div>
             </div>
             <button
               onClick={() => setSelected(new Set())}
-              className="rounded-lg border border-paper/20 px-3 py-1.5 text-xs font-bold transition hover:bg-paper/10"
+              className="rounded-lg border border-paper/20 px-3 py-2 text-xs font-bold transition hover:bg-paper/10"
             >
               Clear
             </button>
             <button
               onClick={openBulk}
-              className="rounded-lg bg-prime-500 px-4 py-1.5 text-xs font-bold transition hover:bg-prime-400"
+              className="rounded-lg bg-prime-500 px-3 py-2 text-xs font-bold transition hover:bg-prime-400 sm:px-4"
             >
-              Bulk adjust →
+              Adjust →
             </button>
           </div>
         </div>

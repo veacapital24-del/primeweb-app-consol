@@ -112,8 +112,8 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
         <Legend role="retailer"   desc="Tabagie buyer — sees wholesale tier on the storefront." />
       </div>
 
-      <div className="overflow-hidden rounded-2xl bg-paper ring-1 ring-ink-200">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl bg-paper ring-1 ring-ink-200">
+        <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr className="text-left text-[11px] font-bold uppercase tracking-widest text-ink-500">
               <th className="px-5 py-2.5">Member</th>

@@ -36,8 +36,8 @@ export default async function WhatsAppPage() {
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-ink-300 bg-white">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-xl border border-ink-300 bg-white">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-ink-100 text-left text-xs uppercase tracking-wide text-ink-500">
             <tr>
               <th className="px-4 py-2">When</th>

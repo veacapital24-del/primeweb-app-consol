@@ -66,8 +66,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         })}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-ink-300/60 bg-paper">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-ink-300/60 bg-paper">
+        <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-paper-dim/60 text-left text-xs uppercase tracking-wider text-ink-500">
             <tr>
               <th className="px-4 py-3">Order</th>

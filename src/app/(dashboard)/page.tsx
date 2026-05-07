@@ -103,7 +103,8 @@ export default async function DashboardPage() {
 
       {/* Recent orders */}
       <Panel className="mt-6" title="Latest orders" right={<Link href="/orders" className="text-xs font-semibold text-prime-700 underline">All orders →</Link>}>
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="text-left text-xs uppercase text-ink-500">
             <tr>
               <th className="py-2 pr-4">Order</th>
@@ -133,6 +134,7 @@ export default async function DashboardPage() {
             )}
           </tbody>
         </table>
+        </div>
       </Panel>
     </div>
   )

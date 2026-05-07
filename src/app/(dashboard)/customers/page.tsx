@@ -133,8 +133,8 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl bg-paper ring-1 ring-ink-200">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl bg-paper ring-1 ring-ink-200">
+        <table className="w-full min-w-[860px] text-sm">
           <thead>
             <tr className="text-left text-[11px] font-bold uppercase tracking-widest text-ink-500">
               <th className="px-5 py-2.5">Customer</th>

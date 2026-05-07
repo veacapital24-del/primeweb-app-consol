@@ -85,7 +85,7 @@ export function AdjustDialog({ targets, open, onClose }: Props) {
       aria-modal
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-paper p-6 shadow-2xl shadow-ink-900/30"
+        className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-2xl bg-paper p-5 shadow-2xl shadow-ink-900/30 sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-start justify-between gap-3">
