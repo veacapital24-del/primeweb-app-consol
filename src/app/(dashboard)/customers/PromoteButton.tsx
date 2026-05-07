@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { setUserRole } from '../team/actions'
+import { setUserRole } from '../settings/team/actions'
 
 // Lets an admin upgrade a customer to retailer / wholesaler from the customers list.
 export function PromoteButton({ userId }: { userId: string }) {

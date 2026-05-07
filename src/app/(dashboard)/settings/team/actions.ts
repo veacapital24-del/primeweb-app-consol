@@ -13,7 +13,7 @@ export async function setUserRole(userId: string, role: Role) {
   const { error } = await sb.from('profiles').update({ role }).eq('id', userId)
   if (error) throw new Error(error.message)
   revalidatePath('/settings/team')
-  revalidatePath('/settings/customers')
+  revalidatePath('/customers')
 }
 
 export async function setWhatsAppOptIn(userId: string, optIn: boolean) {
@@ -21,7 +21,7 @@ export async function setWhatsAppOptIn(userId: string, optIn: boolean) {
   const { error } = await sb.from('profiles').update({ whatsapp_opt_in: optIn }).eq('id', userId)
   if (error) throw new Error(error.message)
   revalidatePath('/settings/team')
-  revalidatePath('/settings/customers')
+  revalidatePath('/customers')
 }
 
 export async function inviteUser(form: FormData): Promise<{ ok: true; email: string; recoveryUrl: string | null }> {
@@ -70,7 +70,7 @@ export async function inviteUser(form: FormData): Promise<{ ok: true; email: str
   recoveryUrl = linkData?.properties?.action_link ?? null
 
   revalidatePath('/settings/team')
-  revalidatePath('/settings/customers')
+  revalidatePath('/customers')
   return { ok: true, email, recoveryUrl }
 }
 

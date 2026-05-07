@@ -7,8 +7,7 @@ const SECTIONS = [
   { href: '/settings/business',     label: 'Business',     desc: 'Trade name, contact, VAT' },
   { href: '/settings/shipping',     label: 'Shipping',     desc: 'Free threshold, fees' },
   { href: '/settings/whatsapp',     label: 'WhatsApp',     desc: 'Channel + Cloud API' },
-  { href: '/settings/team',         label: 'Team & roles', desc: 'Admin, wholesaler, retailer' },
-  { href: '/settings/customers',    label: 'Customers',    desc: 'End-shopper accounts' },
+  { href: '/settings/team',         label: 'Admin users',  desc: 'Admins, wholesalers, retailers' },
   { href: '/settings/integrations', label: 'Integrations', desc: 'Supabase, edge functions' },
 ]
 

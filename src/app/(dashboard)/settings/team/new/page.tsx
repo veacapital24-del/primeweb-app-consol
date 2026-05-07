@@ -11,7 +11,7 @@ export default async function NewUserPage({ searchParams }: PageProps) {
     <div className="space-y-5">
       <header>
         <Link
-          href={isCustomer ? '/settings/customers' : '/settings/team'}
+          href={isCustomer ? '/customers' : '/settings/team'}
           className="text-xs font-semibold text-ink-500 underline hover:text-ink-900"
         >
           ← Back to {isCustomer ? 'customers' : 'team'}

@@ -71,7 +71,7 @@ export function UserInviteForm({
         </div>
         <div className="flex gap-2">
           <Link
-            href={isCustomerForm ? '/settings/customers' : '/settings/team'}
+            href={isCustomerForm ? '/customers' : '/settings/team'}
             className="rounded-xl bg-prime-700 px-4 py-2 text-sm font-bold text-paper transition hover:bg-prime-800"
           >
             ← Back to {isCustomerForm ? 'customers' : 'team'}
@@ -171,7 +171,7 @@ export function UserInviteForm({
       </div>
 
       <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-2xl border border-ink-300/60 bg-paper px-5 py-3 shadow-lg shadow-ink-900/10">
-        <Link href={isCustomerForm ? '/settings/customers' : '/settings/team'} className="text-sm font-semibold text-ink-700 underline">
+        <Link href={isCustomerForm ? '/customers' : '/settings/team'} className="text-sm font-semibold text-ink-700 underline">
           ← Back to {isCustomerForm ? 'customers' : 'team'}
         </Link>
         <button

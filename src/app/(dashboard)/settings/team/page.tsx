@@ -60,9 +60,9 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-black tracking-tight">Team & roles</h2>
+          <h2 className="font-display text-2xl font-black tracking-tight">Admin users</h2>
           <p className="mt-1 text-sm text-ink-500">
-            Operators only — admins, wholesalers, retailers. Customer accounts live under <Link href="/settings/customers" className="font-semibold text-prime-700 underline">Customers</Link>.
+            Operators only — admins, wholesalers, retailers. Customer accounts live under <Link href="/customers" className="font-semibold text-prime-700 underline">Customers</Link>.
           </p>
         </div>
         <Link

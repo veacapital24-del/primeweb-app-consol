@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { adminClient } from '@/lib/supabase'
-import { OptInToggle } from '../team/RoleSelect'
+import { PageHeader } from '@/components/PageHeader'
+import { OptInToggle } from '../settings/team/RoleSelect'
 import { PromoteButton } from './PromoteButton'
 
 export const dynamic = 'force-dynamic'
@@ -73,20 +74,19 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-display text-2xl font-black tracking-tight">Customers</h2>
-          <p className="mt-1 text-sm text-ink-500">
-            End-shopper accounts. Operators are managed under <Link href="/settings/team" className="font-semibold text-prime-700 underline">Team & roles</Link>.
-          </p>
-        </div>
-        <Link
-          href="/settings/team/new?kind=customer"
-          className="rounded-xl bg-prime-700 px-4 py-2 text-sm font-bold text-paper transition hover:bg-prime-800"
-        >
-          + Add customer
-        </Link>
-      </header>
+      <PageHeader
+        title="Customers"
+        subtitle="End-shopper accounts. Operators are managed under Settings → Team & roles."
+        breadcrumbs={[{ label: 'People' }, { label: 'Customers' }]}
+        actions={
+          <Link
+            href="/settings/team/new?kind=customer"
+            className="rounded-xl bg-prime-700 px-4 py-2 text-sm font-bold text-paper transition hover:bg-prime-800"
+          >
+            + Add customer
+          </Link>
+        }
+      />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Customer accounts" value={total.length} />
@@ -111,7 +111,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
             const params = new URLSearchParams()
             if (q) params.set('q', q)
             if (t.key !== 'all') params.set('filter', t.key)
-            const href = `/settings/customers${params.toString() ? `?${params.toString()}` : ''}`
+            const href = `/customers${params.toString() ? `?${params.toString()}` : ''}`
             const labels: Record<typeof t.key, string> = {
               all: 'All',
               'with-orders': 'With orders',
