@@ -59,7 +59,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
               href={`https://wa.me/${order.whatsapp_phone.replace(/[^0-9]/g, '')}`}
               target="_blank"
               rel="noreferrer"
-              className="rounded-xl bg-mint-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-mint-600"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-mint-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-mint-600 sm:w-auto sm:py-2"
             >
               Open WhatsApp
             </a>
@@ -87,9 +87,9 @@ export default async function OrderDetailPage({ params }: PageProps) {
                     </Link>
                     <div className="font-mono text-[11px] uppercase tracking-wider text-ink-500">{it.products?.sku}</div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold tabular-nums">Rs {Number(it.unit_price_mur).toFixed(2)} × {it.qty}</div>
-                    <div className="text-xs text-ink-500 tabular-nums">= Rs {(Number(it.unit_price_mur) * it.qty).toFixed(2)}</div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-xs text-ink-500 tabular-nums sm:text-sm">Rs {Number(it.unit_price_mur).toFixed(2)} × {it.qty}</div>
+                    <div className="font-semibold tabular-nums">= Rs {(Number(it.unit_price_mur) * it.qty).toFixed(2)}</div>
                   </div>
                 </li>
               ))}

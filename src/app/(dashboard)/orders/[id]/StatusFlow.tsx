@@ -24,13 +24,13 @@ export function StatusFlow({ orderId, status }: { orderId: string; status: strin
   return (
     <div className="space-y-4">
       {/* Step rail */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {STEPS.map((s, i) => {
           const reached = !isCancelled && i <= idx
           const current = !isCancelled && i === idx
           return (
-            <div key={s.key} className="flex flex-1 items-center gap-3">
-              <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold transition ${
+            <div key={s.key} className="flex flex-1 items-center gap-2 sm:gap-3">
+              <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold transition sm:h-9 sm:w-9 ${
                 reached
                   ? current
                     ? 'bg-prime-700 text-paper ring-4 ring-prime-200'
@@ -40,7 +40,7 @@ export function StatusFlow({ orderId, status }: { orderId: string; status: strin
                 {reached && i < idx ? '✓' : i + 1}
               </div>
               <div className="min-w-0">
-                <div className={`text-sm font-bold ${reached ? 'text-ink-900' : 'text-ink-500'}`}>{s.label}</div>
+                <div className={`text-xs font-bold sm:text-sm ${reached ? 'text-ink-900' : 'text-ink-500'}`}>{s.label}</div>
               </div>
               {i < STEPS.length - 1 && <div className={`h-0.5 flex-1 ${i < idx && !isCancelled ? 'bg-prime-700' : 'bg-ink-200'}`} />}
             </div>
@@ -55,7 +55,7 @@ export function StatusFlow({ orderId, status }: { orderId: string; status: strin
       )}
 
       {/* Action buttons */}
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
         {status === 'pending' && (
           <>
             <button
@@ -128,7 +128,7 @@ export function NoteForm({ orderId }: { orderId: string }) {
         start(async () => { await addOrderNote(orderId, note); (document.getElementById('note-form') as HTMLFormElement)?.reset() })
       }}
       id="note-form"
-      className="flex gap-2"
+      className="flex flex-col gap-2 sm:flex-row"
     >
       <input
         name="note"
@@ -138,7 +138,7 @@ export function NoteForm({ orderId }: { orderId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-ink-900 px-4 py-2 text-sm font-bold text-paper hover:bg-prime-700 disabled:opacity-50"
+        className="rounded-lg bg-ink-900 px-4 py-2.5 text-sm font-bold text-paper hover:bg-prime-700 disabled:opacity-50"
       >
         Add note
       </button>

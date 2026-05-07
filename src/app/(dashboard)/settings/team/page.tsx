@@ -112,7 +112,37 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
         <Legend role="retailer"   desc="Tabagie buyer — sees wholesale tier on the storefront." />
       </div>
 
-      <div className="overflow-x-auto rounded-2xl bg-paper ring-1 ring-ink-200">
+      {/* Mobile: card list */}
+      <ul className="space-y-2 sm:hidden">
+        {(profiles ?? []).map((p) => (
+          <li key={p.id} className="rounded-2xl bg-paper p-4 ring-1 ring-ink-200">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="truncate font-semibold text-ink-900">{p.full_name ?? '—'}</div>
+                {p.phone && <div className="font-mono text-xs text-ink-700">{p.phone}</div>}
+                {p.shop_name && <div className="truncate text-xs text-ink-700">{p.shop_name}</div>}
+              </div>
+              <div className="text-right text-[11px] text-ink-500">
+                <div className="font-bold tabular-nums text-ink-900">{orderCountMap.get(p.id) ?? 0}</div>
+                <div>orders</div>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-[1fr_auto] items-center gap-2">
+              <RoleSelect userId={p.id} current={p.role} />
+              <OptInToggle userId={p.id} current={p.whatsapp_opt_in} />
+            </div>
+            <div className="mt-2 text-[11px] text-ink-500">Joined {new Date(p.created_at).toLocaleDateString()}</div>
+          </li>
+        ))}
+        {(!profiles || profiles.length === 0) && (
+          <li className="rounded-2xl bg-paper px-4 py-12 text-center text-sm text-ink-500 ring-1 ring-ink-200">
+            No team members yet. Invite the first one.
+          </li>
+        )}
+      </ul>
+
+      {/* Tablet+: table */}
+      <div className="hidden overflow-x-auto rounded-2xl bg-paper ring-1 ring-ink-200 sm:block">
         <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr className="text-left text-[11px] font-bold uppercase tracking-widest text-ink-500">

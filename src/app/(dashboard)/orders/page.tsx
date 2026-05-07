@@ -66,7 +66,48 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         })}
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-ink-300/60 bg-paper">
+      {/* Mobile: card list */}
+      <ul className="space-y-2 sm:hidden">
+        {(data ?? []).map((o) => {
+          const totalItems = o.order_items.reduce((s, i) => s + i.qty, 0)
+          return (
+            <li key={o.id}>
+              <Link
+                href={`/orders/${o.id}`}
+                className="flex flex-col gap-2 rounded-2xl border border-ink-300/60 bg-paper p-4 transition active:scale-[0.99] active:bg-paper-dim/60"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-mono text-xs font-bold text-prime-700">{o.order_number}</div>
+                    <div className="mt-0.5 truncate text-sm font-semibold text-ink-900">{o.customer_name ?? '—'}</div>
+                    {o.whatsapp_phone && (
+                      <div className="font-mono text-[11px] text-ink-500">{o.whatsapp_phone}</div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold tabular-nums text-ink-900">Rs {Number(o.subtotal_mur).toFixed(2)}</div>
+                    <div className="mt-0.5 text-[11px] text-ink-500">{totalItems} unit{totalItems > 1 ? 's' : ''}</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-[11px]">
+                  <div className="flex items-center gap-1.5">
+                    <StatusPill status={o.status} />
+                    <span className="capitalize text-ink-500">{o.channel}</span>
+                    {o.is_wholesale && <span className="rounded-full bg-prime-50 px-1.5 py-0.5 text-[10px] font-bold text-prime-700">B2B</span>}
+                  </div>
+                  <span className="text-ink-500">{new Date(o.created_at).toLocaleDateString()}</span>
+                </div>
+              </Link>
+            </li>
+          )
+        })}
+        {(!data || data.length === 0) && (
+          <li className="rounded-2xl border border-ink-300/60 bg-paper px-4 py-12 text-center text-sm text-ink-500">No orders in this view.</li>
+        )}
+      </ul>
+
+      {/* Tablet+: table */}
+      <div className="hidden overflow-x-auto rounded-2xl border border-ink-300/60 bg-paper sm:block">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-paper-dim/60 text-left text-xs uppercase tracking-wider text-ink-500">
             <tr>

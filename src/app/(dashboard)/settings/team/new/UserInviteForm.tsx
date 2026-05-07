@@ -170,14 +170,14 @@ export function UserInviteForm({
         </div>
       </div>
 
-      <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-2xl border border-ink-300/60 bg-paper px-5 py-3 shadow-lg shadow-ink-900/10">
-        <Link href={isCustomerForm ? '/customers' : '/settings/team'} className="text-sm font-semibold text-ink-700 underline">
+      <div className="sticky bottom-4 flex flex-col-reverse gap-2 rounded-2xl border border-ink-300/60 bg-paper px-4 py-3 shadow-lg shadow-ink-900/10 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5">
+        <Link href={isCustomerForm ? '/customers' : '/settings/team'} className="text-center text-sm font-semibold text-ink-700 underline sm:text-left">
           ← Back to {isCustomerForm ? 'customers' : 'team'}
         </Link>
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-prime-700 px-5 py-2.5 text-sm font-bold text-paper transition hover:bg-prime-800 disabled:opacity-50"
+          className="w-full rounded-xl bg-prime-700 px-5 py-3 text-sm font-bold text-paper transition hover:bg-prime-800 disabled:opacity-50 sm:w-auto sm:py-2.5"
         >
           {isPending ? 'Inviting…' : (isCustomerForm ? 'Add customer' : 'Invite teammate')}
         </button>
