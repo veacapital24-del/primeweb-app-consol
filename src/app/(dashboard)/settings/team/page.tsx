@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { adminClient } from '@/lib/supabase'
-import { PageHeader } from '@/components/PageHeader'
 import { RoleSelect, OptInToggle } from './RoleSelect'
 
 export const dynamic = 'force-dynamic'
@@ -24,7 +23,6 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const { role = 'all', q = '' } = await searchParams
   const sb = adminClient()
 
-  // Hard exclusion: this page never shows customer accounts.
   let query = sb
     .from('profiles')
     .select('*')
@@ -48,7 +46,6 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
 
   const tabs = (['all', 'admin', 'wholesaler', 'retailer'] as const).map((k) => ({ key: k, count: counts[k] ?? 0 }))
 
-  // Order counts per user
   const ids = (profiles ?? []).map((p) => p.id)
   const { data: orderCounts } = ids.length > 0
     ? await sb.from('orders').select('customer_id').in('customer_id', ids)
@@ -60,26 +57,30 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Team & roles"
-        subtitle="Operators only — admins, wholesalers, retailers. Customers live under People → Customers."
-        breadcrumbs={[{ label: 'People' }, { label: 'Team' }]}
-        actions={
-          <Link href="/users/new?kind=team" className="rounded-xl bg-prime-700 px-4 py-2 text-sm font-bold text-paper transition hover:bg-prime-800">
-            + Invite teammate
-          </Link>
-        }
-      />
+    <div className="space-y-5">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-display text-2xl font-black tracking-tight">Team & roles</h2>
+          <p className="mt-1 text-sm text-ink-500">
+            Operators only — admins, wholesalers, retailers. Customer accounts live under <Link href="/settings/customers" className="font-semibold text-prime-700 underline">Customers</Link>.
+          </p>
+        </div>
+        <Link
+          href="/settings/team/new?kind=team"
+          className="rounded-xl bg-prime-700 px-4 py-2 text-sm font-bold text-paper transition hover:bg-prime-800"
+        >
+          + Invite teammate
+        </Link>
+      </header>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <form className="relative flex-1 min-w-[220px] max-w-md">
-          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <svg className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input
             name="q"
             defaultValue={q}
             placeholder="Search name, phone, or shop…"
-            className="w-full rounded-lg border border-ink-300 bg-paper py-2 pl-10 pr-3 text-sm focus:border-prime-500 focus:outline-none"
+            className="w-full rounded-lg border border-ink-200 bg-paper py-1.5 pl-9 pr-3 text-sm focus:border-prime-500 focus:outline-none"
           />
           <input type="hidden" name="role" value={role} />
         </form>
@@ -89,58 +90,60 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
             const params = new URLSearchParams()
             if (q) params.set('q', q)
             if (t.key !== 'all') params.set('role', t.key)
-            const href = `/users${params.toString() ? `?${params.toString()}` : ''}`
+            const href = `/settings/team${params.toString() ? `?${params.toString()}` : ''}`
             return (
               <Link
                 key={t.key}
                 href={href}
-                className={`rounded-full px-3 py-1.5 capitalize transition ${active ? 'bg-prime-700 text-paper' : 'bg-paper text-ink-700 hover:bg-ink-100'}`}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 capitalize transition ${
+                  active ? 'bg-ink-900 text-paper' : 'text-ink-700 hover:bg-paper-dim/60'
+                }`}
               >
-                {t.key} <span className="opacity-60">({t.count})</span>
+                {t.key} <span className={active ? 'opacity-70' : 'text-ink-500'}>{t.count}</span>
               </Link>
             )
           })}
         </div>
       </div>
 
-      <div className="mb-4 grid gap-2 text-xs sm:grid-cols-3">
+      <div className="grid gap-2 text-xs sm:grid-cols-3">
         <Legend role="admin"      desc="Full access to this admin console." />
         <Legend role="wholesaler" desc="High-volume B2B. Special account terms." />
         <Legend role="retailer"   desc="Tabagie buyer — sees wholesale tier on the storefront." />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-ink-300/60 bg-paper">
+      <div className="overflow-hidden rounded-2xl bg-paper ring-1 ring-ink-200">
         <table className="w-full text-sm">
-          <thead className="bg-paper-dim/60 text-left text-xs uppercase tracking-wider text-ink-500">
-            <tr>
-              <th className="px-4 py-3">Member</th>
-              <th className="px-4 py-3">Phone / shop</th>
-              <th className="px-4 py-3">Orders</th>
-              <th className="px-4 py-3">Role</th>
-              <th className="px-4 py-3">WhatsApp opt-in</th>
-              <th className="px-4 py-3">Joined</th>
+          <thead>
+            <tr className="text-left text-[11px] font-bold uppercase tracking-widest text-ink-500">
+              <th className="px-5 py-2.5">Member</th>
+              <th className="px-5 py-2.5">Phone / shop</th>
+              <th className="px-5 py-2.5">Orders</th>
+              <th className="px-5 py-2.5">Role</th>
+              <th className="px-5 py-2.5">WhatsApp</th>
+              <th className="px-5 py-2.5">Joined</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-ink-300/60">
+          <tbody>
             {(profiles ?? []).map((p) => (
-              <tr key={p.id} className="hover:bg-paper-dim/40">
-                <td className="px-4 py-3">
-                  <div className="font-semibold">{p.full_name ?? '—'}</div>
-                  <div className="font-mono text-[11px] uppercase tracking-wider text-ink-500">{p.id.slice(0, 8)}</div>
+              <tr key={p.id} className="border-t border-ink-200/60 transition hover:bg-paper-dim/40">
+                <td className="px-5 py-3.5">
+                  <div className="font-semibold text-ink-900">{p.full_name ?? '—'}</div>
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-ink-500">{p.id.slice(0, 8)}</div>
                 </td>
-                <td className="px-4 py-3 text-xs">
+                <td className="px-5 py-3.5 text-xs">
                   {p.phone && <div className="font-mono">{p.phone}</div>}
                   {p.shop_name && <div className="text-ink-700">{p.shop_name}</div>}
                   {!p.phone && !p.shop_name && <span className="text-ink-300">—</span>}
                 </td>
-                <td className="px-4 py-3 tabular-nums">{orderCountMap.get(p.id) ?? 0}</td>
-                <td className="px-4 py-3"><RoleSelect userId={p.id} current={p.role} /></td>
-                <td className="px-4 py-3"><OptInToggle userId={p.id} current={p.whatsapp_opt_in} /></td>
-                <td className="px-4 py-3 text-xs text-ink-500">{new Date(p.created_at).toLocaleDateString()}</td>
+                <td className="px-5 py-3.5 tabular-nums">{orderCountMap.get(p.id) ?? 0}</td>
+                <td className="px-5 py-3.5"><RoleSelect userId={p.id} current={p.role} /></td>
+                <td className="px-5 py-3.5"><OptInToggle userId={p.id} current={p.whatsapp_opt_in} /></td>
+                <td className="px-5 py-3.5 text-xs text-ink-500">{new Date(p.created_at).toLocaleDateString()}</td>
               </tr>
             ))}
             {(!profiles || profiles.length === 0) && (
-              <tr><td colSpan={6} className="px-4 py-12 text-center text-ink-500">
+              <tr><td colSpan={6} className="px-5 py-12 text-center text-ink-500">
                 No team members yet. Invite the first one.
               </td></tr>
             )}
@@ -153,7 +156,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
 
 function Legend({ role, desc }: { role: string; desc: string }) {
   return (
-    <div className="rounded-xl border border-ink-300/60 bg-paper p-3">
+    <div className="rounded-xl bg-paper p-3 ring-1 ring-ink-200">
       <div className="font-bold capitalize text-ink-900">{role}</div>
       <div className="mt-0.5 text-ink-500">{desc}</div>
     </div>

@@ -37,13 +37,6 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    heading: 'People',
-    items: [
-      { href: '/users',     label: 'Team & roles', icon: <IconUsers /> },
-      { href: '/customers', label: 'Customers',    icon: <IconShopper /> },
-    ],
-  },
-  {
     heading: 'Channels',
     items: [
       { href: '/whatsapp', label: 'WhatsApp', icon: <IconChat /> },

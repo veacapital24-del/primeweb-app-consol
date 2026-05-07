@@ -12,14 +12,16 @@ export async function setUserRole(userId: string, role: Role) {
   const sb = adminClient()
   const { error } = await sb.from('profiles').update({ role }).eq('id', userId)
   if (error) throw new Error(error.message)
-  revalidatePath('/users')
+  revalidatePath('/settings/team')
+  revalidatePath('/settings/customers')
 }
 
 export async function setWhatsAppOptIn(userId: string, optIn: boolean) {
   const sb = adminClient()
   const { error } = await sb.from('profiles').update({ whatsapp_opt_in: optIn }).eq('id', userId)
   if (error) throw new Error(error.message)
-  revalidatePath('/users')
+  revalidatePath('/settings/team')
+  revalidatePath('/settings/customers')
 }
 
 export async function inviteUser(form: FormData): Promise<{ ok: true; email: string; recoveryUrl: string | null }> {
@@ -67,11 +69,12 @@ export async function inviteUser(form: FormData): Promise<{ ok: true; email: str
   const { data: linkData } = await sb.auth.admin.generateLink({ type: 'recovery', email })
   recoveryUrl = linkData?.properties?.action_link ?? null
 
-  revalidatePath('/users')
+  revalidatePath('/settings/team')
+  revalidatePath('/settings/customers')
   return { ok: true, email, recoveryUrl }
 }
 
 export async function inviteUserAndRedirect(form: FormData) {
   await inviteUser(form)
-  redirect('/users')
+  redirect('/settings/team')
 }
