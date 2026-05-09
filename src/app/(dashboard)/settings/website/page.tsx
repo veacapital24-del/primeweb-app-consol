@@ -118,8 +118,10 @@ export default async function WebsiteSettingsPage() {
               </span>
               <button
                 type="submit"
-                className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition ${
-                  maintenanceEnabled ? 'bg-prime-700 hover:bg-prime-800' : 'bg-ink-800 hover:bg-ink-900'
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition shadow-sm ${
+                  maintenanceEnabled 
+                    ? 'bg-red-600 hover:bg-red-700 text-white' 
+                    : 'bg-prime-700 hover:bg-prime-800 text-white'
                 }`}
               >
                 {maintenanceEnabled ? 'Disable Maintenance' : 'Enable Maintenance'}
