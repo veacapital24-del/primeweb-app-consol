@@ -6,6 +6,8 @@ export const dynamic = 'force-dynamic'
 
 export default async function WebsiteSettingsPage() {
   const settings = await getWebsiteSettings(true)
+  const maintenanceSetting = settings.find((s: any) => s.setting_name === 'maintenance_mode')
+  const maintenanceEnabled = maintenanceSetting?.setting_value === 'true'
 
   async function handleUpsert(formData: FormData) {
     'use server'
@@ -22,6 +24,21 @@ export default async function WebsiteSettingsPage() {
     'use server'
     const id = formData.get('id') as string
     await deleteWebsiteSetting(id, true)
+    redirect('/website-settings')
+  }
+
+  async function handleMaintenanceToggle(formData: FormData) {
+    'use server'
+    const enabled = formData.get('enabled') === 'true'
+    await updateWebsiteSetting(
+      {
+        id: formData.get('id') as string | undefined,
+        setting_name: 'maintenance_mode',
+        setting_value: enabled ? 'true' : 'false',
+        data_type: 'boolean',
+      },
+      true,
+    )
     redirect('/website-settings')
   }
 
@@ -79,6 +96,33 @@ export default async function WebsiteSettingsPage() {
         </form>
 
         <div className="space-y-4 rounded-2xl border border-ink-200/70 bg-paper p-5 shadow-sm">
+          <div className="flex flex-col gap-1 rounded-xl border border-ink-100 bg-ink-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-base font-bold text-ink-900">Maintenance Mode</h3>
+              <p className="text-sm text-ink-600">Temporarily take the storefront offline for updates.</p>
+            </div>
+            <form action={handleMaintenanceToggle} className="flex items-center gap-2">
+              <input type="hidden" name="id" value={maintenanceSetting?.id ?? ''} />
+              <input type="hidden" name="enabled" value={(!maintenanceEnabled).toString()} />
+              <input type="hidden" name="data_type" value="boolean" />
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  maintenanceEnabled ? 'bg-red-100 text-red-700' : 'bg-mint-100 text-mint-700'
+                }`}
+              >
+                {maintenanceEnabled ? 'Active' : 'Inactive'}
+              </span>
+              <button
+                type="submit"
+                className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition ${
+                  maintenanceEnabled ? 'bg-prime-700 hover:bg-prime-800' : 'bg-ink-800 hover:bg-ink-900'
+                }`}
+              >
+                {maintenanceEnabled ? 'Disable Maintenance' : 'Enable Maintenance'}
+              </button>
+            </form>
+          </div>
+
           <div className="flex items-baseline justify-between">
             <h2 className="text-lg font-bold text-ink-900">Existing Settings</h2>
             <span className="text-xs text-ink-500">{settings.length} total</span>
