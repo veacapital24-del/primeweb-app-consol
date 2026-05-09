@@ -39,7 +39,7 @@ export async function getWebsiteSettings(server?: boolean) {
     console.error("Error fetching website settings:", error);
     return [];
   }
-  return data;
+  return data ?? [];
 }
 
 export async function updateWebsiteSetting(setting: { id?: string; setting_name: string; setting_value: string; data_type: string }, server?: boolean) {
