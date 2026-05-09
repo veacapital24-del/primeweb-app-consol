@@ -42,7 +42,7 @@ export async function getWebsiteSettings(server?: boolean) {
   return data ?? [];
 }
 
-export async function updateWebsiteSetting(setting: { id?: string; setting_name: string; setting_value: string; data_type: string }, server?: boolean) {
+export async function updateWebsiteSetting(setting: { id?: string; setting_name: string; setting_value: string | null; data_type: string }, server?: boolean) {
   const supabase = server ? await serverClient() : browserClient();
   const { data, error } = await supabase
     .from("website_settings")
