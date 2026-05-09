@@ -96,15 +96,19 @@ export default async function WebsiteSettingsPage() {
         </form>
 
         <div className="space-y-4 rounded-2xl border border-ink-200/70 bg-paper p-5 shadow-sm">
-          <div className="flex flex-col gap-1 rounded-xl border border-ink-100 bg-ink-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="text-lg font-bold text-ink-900">Existing Settings</h2>
+            <span className="text-xs text-ink-500">{settings.length} total</span>
+          </div>
+
+          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-ink-100 bg-ink-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-base font-bold text-ink-900">Maintenance Mode</h3>
               <p className="text-sm text-ink-600">Temporarily take the storefront offline for updates.</p>
             </div>
-            <form action={handleMaintenanceToggle} className="flex items-center gap-2">
+            <form action={handleMaintenanceToggle} className="flex items-center gap-2 mt-3 sm:mt-0">
               <input type="hidden" name="id" value={maintenanceSetting?.id ?? ''} />
               <input type="hidden" name="enabled" value={(!maintenanceEnabled).toString()} />
-              <input type="hidden" name="data_type" value="boolean" />
               <span
                 className={`rounded-full px-3 py-1 text-xs font-semibold ${
                   maintenanceEnabled ? 'bg-red-100 text-red-700' : 'bg-mint-100 text-mint-700'
@@ -121,11 +125,6 @@ export default async function WebsiteSettingsPage() {
                 {maintenanceEnabled ? 'Disable Maintenance' : 'Enable Maintenance'}
               </button>
             </form>
-          </div>
-
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-bold text-ink-900">Existing Settings</h2>
-            <span className="text-xs text-ink-500">{settings.length} total</span>
           </div>
 
           {settings.length === 0 ? (
