@@ -17,14 +17,14 @@ export default async function WebsiteSettingsPage() {
     const data_type = (formData.get('data_type') as string).trim() || 'string'
 
     await updateWebsiteSetting({ id, setting_name, setting_value, data_type }, true)
-    redirect('/website-settings')
+    redirect('/settings/website')
   }
 
   async function handleDelete(formData: FormData) {
     'use server'
     const id = formData.get('id') as string
     await deleteWebsiteSetting(id, true)
-    redirect('/website-settings')
+    redirect('/settings/website')
   }
 
   async function handleMaintenanceToggle(formData: FormData) {
@@ -39,7 +39,7 @@ export default async function WebsiteSettingsPage() {
       },
       true,
     )
-    redirect('/website-settings')
+    redirect('/settings/website')
   }
 
   return (
