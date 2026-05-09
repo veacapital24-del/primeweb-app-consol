@@ -3,16 +3,26 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { createProduct, updateProduct, deleteProduct } from './actions'
-import type { Product } from '@/lib/types'
+import type { Brand, Category, Product } from '@/lib/types'
 
 type Mode = 'create' | 'edit'
 
 type Props = {
   mode: Mode
-  product?: Product & { initial_stock?: number }
+  // `initial_stock` is used for new products; `low_stock_threshold` is
+  // edited in the inventory card on both create + edit so the storefront's
+  // "Only X left" chip is configurable.
+  product?: Product & {
+    initial_stock?: number
+    low_stock_threshold?: number
+  }
+  // Loaded server-side from the brands / categories tables so newly
+  // created entries surface immediately in the dropdowns.
+  categories: Pick<Category, 'slug' | 'name'>[]
+  brands: Pick<Brand, 'slug' | 'name'>[]
 }
 
-export function ProductForm({ mode, product }: Props) {
+export function ProductForm({ mode, product, categories, brands }: Props) {
   const [isPending, start] = useTransition()
   const [hasWholesale, setHasWholesale] = useState(product?.wholesale_price_mur != null)
   const [name, setName] = useState(product?.name ?? '')
@@ -131,13 +141,91 @@ export function ProductForm({ mode, product }: Props) {
             {!hasWholesale && <input type="hidden" name="wholesale_price_mur" value="" />}
           </Card>
 
-          {mode === 'create' && (
-            <Card title="Initial inventory">
-              <Field label="On hand" hint="Starting quantity in the warehouse">
-                <input name="initial_stock" type="number" min={0} defaultValue={0} className={inputCls} />
+          <Card title="Categorisation">
+            <p className="-mt-2 mb-4 text-[11px] text-ink-500">
+              Drives where the product appears on the storefront — category
+              page, brand showcase, and search tag chips. Manage the
+              available options at{' '}
+              <Link href="/categories" className="font-semibold text-prime-700 underline">
+                /categories
+              </Link>{' '}
+              and{' '}
+              <Link href="/brands" className="font-semibold text-prime-700 underline">
+                /brands
+              </Link>
+              .
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Storefront category" hint="Top-level shelf">
+                <select
+                  name="category_slug"
+                  defaultValue={product?.category_slug ?? ''}
+                  className={inputCls}
+                >
+                  <option value="">— None —</option>
+                  {categories.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </Field>
-            </Card>
-          )}
+              <Field label="Partner brand" hint="Shown on /brands and /product/[slug]">
+                <select
+                  name="brand_slug"
+                  defaultValue={product?.brand_slug ?? ''}
+                  className={inputCls}
+                >
+                  <option value="">— Unbranded —</option>
+                  {brands.map((b) => (
+                    <option key={b.slug} value={b.slug}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <Field
+              label="Tags"
+              hint="Comma-separated. Stored as a Postgres text[] and exposed as search facets."
+              className="mt-4"
+            >
+              <input
+                name="tags"
+                defaultValue={(product?.tags ?? []).join(', ')}
+                placeholder="organic, halal, vegan"
+                className={inputCls}
+              />
+            </Field>
+          </Card>
+
+          <Card title={mode === 'create' ? 'Initial inventory' : 'Inventory thresholds'}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {mode === 'create' && (
+                <Field label="On hand" hint="Starting quantity in the warehouse">
+                  <input
+                    name="initial_stock"
+                    type="number"
+                    min={0}
+                    defaultValue={0}
+                    className={inputCls}
+                  />
+                </Field>
+              )}
+              <Field
+                label="Low-stock threshold"
+                hint='Below this, the storefront shows the "Only X left" badge.'
+              >
+                <input
+                  name="low_stock_threshold"
+                  type="number"
+                  min={0}
+                  defaultValue={product?.low_stock_threshold ?? 5}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          </Card>
         </div>
 
         {/* Right column */}

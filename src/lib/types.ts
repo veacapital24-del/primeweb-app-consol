@@ -1,5 +1,64 @@
 export type UserRole = 'customer' | 'retailer' | 'wholesaler' | 'admin'
 
+// Physical location — store, warehouse, or pop-up. Shared between the
+// admin console (this app) and the POS, so a location created here
+// immediately appears in POS pickers.
+export const LOCATION_KINDS = ['store', 'warehouse', 'kiosk', 'popup'] as const
+export type LocationKind = (typeof LOCATION_KINDS)[number]
+
+export type Location = {
+  id: string
+  code: string
+  name: string
+  kind: LocationKind
+  address: string | null
+  phone: string | null
+  timezone: string
+  currency: string
+  active: boolean
+  created_at: string
+}
+
+// Storefront-facing taxonomy. Persisted in Postgres so the admin console
+// can manage them at runtime (see /brands and /categories admin pages).
+export type Category = {
+  slug: string
+  name: string
+  parent_slug: string | null
+  sort_order: number
+  active: boolean
+  image_url: string | null
+  description: string | null
+  created_at: string
+  updated_at: string
+}
+
+export const BRAND_TINTS = [
+  'sage',
+  'ocean',
+  'mustard',
+  'dusty-pink',
+  'terracotta',
+  'stone',
+] as const
+export type BrandTint = (typeof BRAND_TINTS)[number]
+
+export type Brand = {
+  slug: string
+  name: string
+  logo_url: string | null
+  origin: string | null
+  tagline: string | null
+  body: string | null
+  category_slug: string | null
+  category_label: string | null
+  tint: BrandTint
+  sort_order: number
+  active: boolean
+  created_at: string
+  updated_at: string
+}
+
 export type Product = {
   id: string
   sku: string
@@ -12,6 +71,12 @@ export type Product = {
   wholesale_min_qty: number
   is_hard_discount: boolean
   active: boolean
+  // Surfaced on the NuLakaz storefront (category page, brand page, search
+  // tag chips). Slug values reference the `categories` and `brands`
+  // tables — manage them at /categories and /brands in the admin console.
+  category_slug: string | null
+  brand_slug: string | null
+  tags: string[] | null
 }
 
 export type InventoryRow = {

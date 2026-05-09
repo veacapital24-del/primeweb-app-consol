@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { adminClient } from '@/lib/supabase'
 import { PageHeader } from '@/components/PageHeader'
 import { InventoryClient } from './InventoryClient'
+import type { Location } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,8 +15,6 @@ type Row = {
   low_stock_threshold: number
 }
 
-type InventoryMeta = { product_id: string; updated_at: string | null }
-
 type Movement = {
   id: number
   product_id: string
@@ -27,39 +26,144 @@ type Movement = {
   products: { name: string } | null
 }
 
-type SearchParams = { filter?: 'all' | 'low' | 'out' | 'in-stock'; q?: string }
+type SearchParams = {
+  filter?: 'all' | 'low' | 'out' | 'in-stock'
+  q?: string
+  // Location scope. "warehouse" (or missing) reads the warehouse-wide
+  // `inventory` table (the storefront-facing total). A UUID reads the
+  // per-location `location_stock` table for that store / kiosk / warehouse.
+  location?: string
+}
 
-export default async function WarehousePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const { filter = 'all', q = '' } = await searchParams
+export default async function WarehousePage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>
+}) {
+  const { filter = 'all', q = '', location: locParam } = await searchParams
   const sb = adminClient()
 
-  let query = sb
-    .from('product_stock')
-    .select('id, sku, name, image_url, available, low_stock_threshold')
-    .order('available', { ascending: true })
+  // Always pull active locations so the switcher has an up-to-date list.
+  const { data: locations } = await sb
+    .from('locations')
+    .select('*')
+    .eq('active', true)
+    .order('name', { ascending: true })
+    .returns<Location[]>()
 
-  if (q) {
-    const pat = `%${q.replace(/[%_]/g, '')}%`
-    query = query.or(`name.ilike.${pat},sku.ilike.${pat}`)
+  const isLocationScope =
+    locParam !== undefined && locParam !== 'warehouse'
+  const activeLocation = isLocationScope
+    ? (locations ?? []).find((l) => l.id === locParam) ?? null
+    : null
+  const scopeLabel = activeLocation
+    ? `${activeLocation.code} · ${activeLocation.name}`
+    : 'Warehouse total'
+
+  // ────── Pull rows ──────
+  let rows: Row[] = []
+  let stockUpdatedAt: Map<string, string | null> = new Map()
+
+  if (isLocationScope && activeLocation) {
+    // Per-location stock — joined with products for name/sku/image.
+    type Joined = {
+      product_id: string
+      on_hand: number
+      reserved: number
+      low_stock_threshold: number
+      updated_at: string | null
+      products: { sku: string; name: string; image_url: string | null } | null
+    }
+    let lq = sb
+      .from('location_stock')
+      .select(
+        'product_id, on_hand, reserved, low_stock_threshold, updated_at, products!inner(sku, name, image_url, active)',
+      )
+      .eq('location_id', activeLocation.id)
+      .eq('products.active', true)
+      .order('on_hand', { ascending: true })
+
+    if (q) {
+      const pat = `%${q.replace(/[%_]/g, '')}%`
+      lq = lq.or(`name.ilike.${pat},sku.ilike.${pat}`, {
+        foreignTable: 'products',
+      })
+    }
+
+    const { data: locRows } = await lq.returns<Joined[]>()
+    const all = (locRows ?? []).map((r) => {
+      const available = Math.max(0, (r.on_hand ?? 0) - (r.reserved ?? 0))
+      stockUpdatedAt.set(r.product_id, r.updated_at)
+      return {
+        id: r.product_id,
+        sku: r.products?.sku ?? '',
+        name: r.products?.name ?? '—',
+        image_url: r.products?.image_url ?? null,
+        available,
+        low_stock_threshold: r.low_stock_threshold ?? 5,
+      }
+    })
+
+    rows = all.filter((r) => {
+      if (filter === 'out') return r.available === 0
+      if (filter === 'low')
+        return r.available > 0 && r.available <= r.low_stock_threshold
+      if (filter === 'in-stock') return r.available > r.low_stock_threshold
+      return true
+    })
+  } else {
+    // Warehouse-wide — same `product_stock` view the page used before.
+    let query = sb
+      .from('product_stock')
+      .select('id, sku, name, image_url, available, low_stock_threshold')
+      .order('available', { ascending: true })
+
+    if (q) {
+      const pat = `%${q.replace(/[%_]/g, '')}%`
+      query = query.or(`name.ilike.${pat},sku.ilike.${pat}`)
+    }
+    if (filter === 'out') query = query.eq('available', 0)
+    if (filter === 'low')
+      query = query.gt('available', 0).lte('available', 5)
+    if (filter === 'in-stock') query = query.gt('available', 5)
+
+    const { data } = await query.returns<Row[]>()
+    rows = data ?? []
+
+    const ids = rows.map((r) => r.id)
+    if (ids.length > 0) {
+      const { data: invMeta } = await sb
+        .from('inventory')
+        .select('product_id, updated_at')
+        .in('product_id', ids)
+      stockUpdatedAt = new Map(
+        (invMeta ?? []).map((r) => [r.product_id, r.updated_at]),
+      )
+    }
   }
-  if (filter === 'out')      query = query.eq('available', 0)
-  if (filter === 'low')      query = query.gt('available', 0).lte('available', 5)
-  if (filter === 'in-stock') query = query.gt('available', 5)
 
-  const { data: rows } = await query.returns<Row[]>()
-
-  const ids = (rows ?? []).map((r) => r.id)
-  const { data: invMeta } = ids.length > 0
-    ? await sb.from('inventory').select('product_id, updated_at').in('product_id', ids)
-    : { data: [] as InventoryMeta[] }
-  const updatedMap = new Map((invMeta ?? []).map((r) => [r.product_id, r.updated_at]))
-  const enrichedRows = (rows ?? []).map((r) => ({
+  const enrichedRows = rows.map((r) => ({
     ...r,
-    updated_at: updatedMap.get(r.id) ?? null,
+    updated_at: stockUpdatedAt.get(r.id) ?? null,
   }))
 
-  const { data: stockTotals } = await sb.from('product_stock').select('available').returns<Array<{ available: number }>>()
-  const totals = stockTotals ?? []
+  // ────── KPIs (always reflect the active scope) ──────
+  let totals: Array<{ available: number }> = []
+  if (isLocationScope && activeLocation) {
+    const { data } = await sb
+      .from('location_stock')
+      .select('on_hand, reserved')
+      .eq('location_id', activeLocation.id)
+    totals = (data ?? []).map((r) => ({
+      available: Math.max(0, (r.on_hand ?? 0) - (r.reserved ?? 0)),
+    }))
+  } else {
+    const { data } = await sb
+      .from('product_stock')
+      .select('available')
+      .returns<Array<{ available: number }>>()
+    totals = data ?? []
+  }
   const counts = {
     all: totals.length,
     out: totals.filter((r) => r.available === 0).length,
@@ -75,20 +179,86 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
     { key: 'out',      label: 'Sold out',  count: counts.out },
   ] as const
 
-  const { data: moves } = await sb
+  // Recent movements — show the active scope so the activity feed makes
+  // sense alongside the KPIs.
+  let movesQuery = sb
     .from('stock_movements')
-    .select('id, product_id, delta, reason, before_qty, after_qty, created_at, products(name)')
+    .select(
+      'id, product_id, delta, reason, before_qty, after_qty, created_at, products(name)',
+    )
     .order('created_at', { ascending: false })
     .limit(8)
-    .returns<Movement[]>()
+  if (isLocationScope && activeLocation) {
+    // Reasons for location-scoped adjusts are tagged with `@<code>`.
+    movesQuery = movesQuery.ilike('reason', `%@${activeLocation.code}%`)
+  }
+  const { data: moves } = await movesQuery.returns<Movement[]>()
+
+  const buildHref = (overrides: Partial<SearchParams>) => {
+    const params = new URLSearchParams()
+    const next = { filter, q, location: locParam, ...overrides }
+    if (next.q) params.set('q', next.q)
+    if (next.filter && next.filter !== 'all') params.set('filter', next.filter)
+    if (next.location && next.location !== 'warehouse')
+      params.set('location', next.location)
+    return `/inventory${params.toString() ? `?${params.toString()}` : ''}`
+  }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Warehouse"
-        subtitle={`${counts.units.toLocaleString()} units across ${counts.all} products · adjust via reason-tracked flow`}
-        breadcrumbs={[{ label: 'Operations' }, { label: 'Warehouse' }]}
+        subtitle={
+          activeLocation
+            ? `${counts.units.toLocaleString()} units at ${activeLocation.name} · ${counts.all} products tracked`
+            : `${counts.units.toLocaleString()} units across ${counts.all} products · adjust via reason-tracked flow`
+        }
+        breadcrumbs={[
+          { label: 'Operations' },
+          { label: 'Warehouse', href: '/inventory' },
+          ...(activeLocation
+            ? [{ label: activeLocation.name }]
+            : []),
+        ]}
+        actions={
+          <Link
+            href="/locations"
+            className="rounded-xl border border-ink-300 bg-paper px-3 py-1.5 text-xs font-bold text-ink-700 transition hover:border-prime-700 hover:text-prime-700"
+          >
+            Manage locations →
+          </Link>
+        }
       />
+
+      {/* ─── Location switcher ─────────────────────────────────────── */}
+      <div className="rounded-2xl border border-ink-300/60 bg-paper p-3 sm:p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-[10.5px] font-bold uppercase tracking-widest text-ink-500">
+            Stock at
+          </span>
+          <LocationChip
+            href={buildHref({ location: 'warehouse' })}
+            active={!isLocationScope}
+            label="Warehouse total"
+            sublabel="Storefront-facing"
+          />
+          {(locations ?? []).map((l) => (
+            <LocationChip
+              key={l.id}
+              href={buildHref({ location: l.id })}
+              active={activeLocation?.id === l.id}
+              label={l.name}
+              sublabel={l.code}
+            />
+          ))}
+          <Link
+            href="/locations/new"
+            className="ml-auto rounded-full border border-dashed border-ink-300 px-3 py-1.5 text-xs font-bold text-ink-500 transition hover:border-prime-700 hover:text-prime-700"
+          >
+            + New location
+          </Link>
+        </div>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-4">
         <Kpi label="Total units" value={counts.units.toLocaleString()} icon={<IconBox />} />
@@ -109,18 +279,19 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
                 className="w-full rounded-lg border border-ink-200 bg-paper py-1.5 pl-9 pr-3 text-sm placeholder:text-ink-500 focus:border-prime-500 focus:outline-none"
               />
               <input type="hidden" name="filter" value={filter} />
+              {locParam && locParam !== 'warehouse' && (
+                <input type="hidden" name="location" value={locParam} />
+              )}
             </form>
             <div className="flex flex-wrap gap-1 text-xs font-semibold">
               {tabs.map((t) => {
                 const active = t.key === filter
-                const params = new URLSearchParams()
-                if (q) params.set('q', q)
-                if (t.key !== 'all') params.set('filter', t.key)
-                const href = `/inventory${params.toString() ? `?${params.toString()}` : ''}`
                 return (
                   <Link
                     key={t.key}
-                    href={href}
+                    href={buildHref({
+                      filter: t.key === 'all' ? undefined : t.key,
+                    })}
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition ${
                       active ? 'bg-ink-900 text-paper' : 'text-ink-700 hover:bg-paper-dim/60'
                     }`}
@@ -133,13 +304,21 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
             </div>
           </header>
 
-          <InventoryClient rows={enrichedRows} />
+          <InventoryClient
+            rows={enrichedRows}
+            locationId={activeLocation?.id ?? null}
+            locationLabel={scopeLabel}
+          />
         </section>
 
         <aside className="overflow-hidden rounded-2xl border border-ink-200 bg-paper">
           <header className="flex items-center justify-between border-b border-ink-200 px-5 py-3">
-            <h2 className="text-[11px] font-bold uppercase tracking-widest text-ink-500">Activity</h2>
-            <span className="text-[10px] text-ink-500">last 8</span>
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-ink-500">
+              Activity
+            </h2>
+            <span className="text-[10px] text-ink-500">
+              {activeLocation ? `at ${activeLocation.code}` : 'last 8'}
+            </span>
           </header>
           <ol className="divide-y divide-ink-200">
             {(moves ?? []).map((m) => (
@@ -166,13 +345,47 @@ export default async function WarehousePage({ searchParams }: { searchParams: Pr
             ))}
             {(!moves || moves.length === 0) && (
               <li className="px-5 py-8 text-center text-xs text-ink-500">
-                Adjustments will appear here.
+                {activeLocation
+                  ? `No adjustments at ${activeLocation.code} yet.`
+                  : 'Adjustments will appear here.'}
               </li>
             )}
           </ol>
         </aside>
       </div>
     </div>
+  )
+}
+
+function LocationChip({
+  href,
+  active,
+  label,
+  sublabel,
+}: {
+  href: string
+  active: boolean
+  label: string
+  sublabel: string
+}) {
+  return (
+    <Link
+      href={href}
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs transition ${
+        active
+          ? 'bg-prime-700 text-paper shadow-sm'
+          : 'border border-ink-300 bg-paper text-ink-700 hover:border-prime-500 hover:text-prime-700'
+      }`}
+    >
+      <span className="font-bold">{label}</span>
+      <span
+        className={`font-mono text-[10px] uppercase tracking-wider ${
+          active ? 'opacity-70' : 'text-ink-500'
+        }`}
+      >
+        {sublabel}
+      </span>
+    </Link>
   )
 }
 

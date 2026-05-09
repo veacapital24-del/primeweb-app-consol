@@ -25,14 +25,17 @@ const NAV: NavGroup[] = [
   {
     heading: 'Catalog',
     items: [
-      { href: '/products', label: 'Products', icon: <IconBox /> },
-      { href: '/reels',    label: 'Reels',    icon: <IconPlay /> },
+      { href: '/products',   label: 'Products',   icon: <IconBox /> },
+      { href: '/brands',     label: 'Brands',     icon: <IconTag /> },
+      { href: '/categories', label: 'Categories', icon: <IconGrid /> },
+      { href: '/reels',      label: 'Reels',      icon: <IconPlay /> },
     ],
   },
   {
     heading: 'Operations',
     items: [
       { href: '/inventory', label: 'Warehouse', icon: <IconWarehouse /> },
+      { href: '/locations', label: 'Locations', icon: <IconPin /> },
       { href: '/orders',    label: 'Orders',    icon: <IconClipboard /> },
     ],
   },
@@ -70,7 +73,13 @@ export function Sidebar({ me }: { me?: Me }) {
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-ink-300/60 bg-paper px-4 py-3 md:hidden">
         <Link href="/" className="flex items-center">
-          <Image src="/primeweb-logo.webp" alt="Primeweb" width={3733} height={575} className="h-[16px] w-auto" />
+          <Image
+            src="/logo/nulakaz-wordmark.webp"
+            alt="NuLakaz"
+            width={3139}
+            height={1015}
+            className="h-7 w-auto"
+          />
         </Link>
         <button
           onClick={() => setOpen((o) => !o)}
@@ -92,7 +101,13 @@ export function Sidebar({ me }: { me?: Me }) {
         {/* Brand */}
         <div className="flex h-14 items-center justify-between border-b border-ink-300/60 px-5">
           <Link href="/" className="flex items-center">
-            <Image src="/primeweb-logo.webp" alt="Primeweb" width={3733} height={575} className="h-[18px] w-auto" />
+            <Image
+              src="/logo/nulakaz-wordmark.webp"
+              alt="NuLakaz"
+              width={3139}
+              height={1015}
+              className="h-8 w-auto"
+            />
           </Link>
           <span className="rounded-full bg-prime-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-paper">
             admin
@@ -223,3 +238,6 @@ function IconChat()      { return <svg viewBox="0 0 24 24" className={ic} fill="
 function IconCog()       { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg> }
 function IconLogout()    { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 17l5-5-5-5"/><path d="M20 12H8"/><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/></svg> }
 function IconShopper()   { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1.4 10.4A2 2 0 0 1 15.6 20H8.4a2 2 0 0 1-2-1.6L5 8Z"/><path d="M9 8V6a3 3 0 1 1 6 0v2"/></svg> }
+function IconTag()       { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41 13 21a2 2 0 0 1-2.83 0L3 13.83V4a1 1 0 0 1 1-1h9.83a2 2 0 0 1 1.41.59l6.35 6.35a2 2 0 0 1 0 2.47Z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg> }
+function IconGrid()      { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> }
+function IconPin()       { return <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> }

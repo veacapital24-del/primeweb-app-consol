@@ -15,11 +15,21 @@ type Props = {
   targets: AdjustTarget[]    // 1 = single adjust; >1 = bulk
   open: boolean
   onClose: () => void
+  // null = warehouse-wide adjust; UUID = per-store adjust against the
+  // `location_stock` table for that location.
+  locationId: string | null
+  locationLabel: string
 }
 
 type Mode = 'relative' | 'absolute'
 
-export function AdjustDialog({ targets, open, onClose }: Props) {
+export function AdjustDialog({
+  targets,
+  open,
+  onClose,
+  locationId,
+  locationLabel,
+}: Props) {
   const [reason, setReason] = useState<AdjustReason>('receive')
   const [mode, setMode] = useState<Mode>('relative')
   const [qty, setQty] = useState<number>(1)
@@ -63,11 +73,13 @@ export function AdjustDialog({ targets, open, onClose }: Props) {
           await bulkAdjustStock({
             productIds: targets.map((t) => t.id),
             mode, qty, reason, note: note || undefined,
+            locationId,
           })
         } else {
           await adjustStock({
             productId: single.id,
             mode, qty, reason, note: note || undefined,
+            locationId,
           })
         }
         onClose()
@@ -98,6 +110,21 @@ export function AdjustDialog({ targets, open, onClose }: Props) {
                 ? `${targets.length} products selected · ${totalCurrent} units total`
                 : <>{single.name} · <span className="font-mono">{single.sku}</span></>}
             </p>
+            <span
+              className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                locationId
+                  ? 'bg-amber-50 text-amber-700'
+                  : 'bg-prime-50 text-prime-700'
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`w-1.5 h-1.5 rounded-full ${
+                  locationId ? 'bg-amber-500' : 'bg-prime-500'
+                }`}
+              />
+              {locationId ? `Stock at · ${locationLabel}` : 'Warehouse total'}
+            </span>
           </div>
           <button
             onClick={onClose}

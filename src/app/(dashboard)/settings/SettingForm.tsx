@@ -7,6 +7,7 @@ type FieldDef =
   | { name: string; label: string; type: 'text' | 'tel' | 'url'; placeholder?: string; hint?: string }
   | { name: string; label: string; type: 'number'; suffix?: string; hint?: string }
   | { name: string; label: string; type: 'bool'; hint?: string }
+  | { name: string; label: string; type: 'textarea'; rows?: number; placeholder?: string; hint?: string }
 
 export function SettingForm({
   settingKey,
@@ -81,6 +82,21 @@ function Field({ field, value }: { field: FieldDef; value: unknown }) {
           className="h-5 w-9 cursor-pointer appearance-none rounded-full bg-ink-200 transition checked:bg-prime-700 relative
             before:absolute before:left-0.5 before:top-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition checked:before:translate-x-4"
         />
+      </label>
+    )
+  }
+  if (field.type === 'textarea') {
+    return (
+      <label className="col-span-full block">
+        <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-ink-500">{field.label}</span>
+        <textarea
+          name={field.name}
+          rows={field.rows ?? 3}
+          defaultValue={String(value ?? '')}
+          placeholder={field.placeholder}
+          className="w-full rounded-lg border border-ink-300 bg-paper px-3 py-2 text-sm focus:border-prime-500 focus:outline-none"
+        />
+        {field.hint && <span className="mt-1 block text-[11px] text-ink-500">{field.hint}</span>}
       </label>
     )
   }

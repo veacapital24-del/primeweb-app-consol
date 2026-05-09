@@ -1,42 +1,63 @@
 @import "tailwindcss";
 
 @theme {
-  /* Match storefront brand */
-  --color-prime-50:  #ecf5ee;
-  --color-prime-100: #d3ebd9;
-  --color-prime-200: #aed8b9;
-  --color-prime-300: #82c094;
-  --color-prime-400: #6baa82;
-  --color-prime-500: #3d8556;
-  --color-prime-600: #246340;
-  --color-prime-700: #16442a;
-  --color-prime-800: #0f3320;
-  --color-prime-900: #082014;
+  /* ─────────────────────────────────────────────────────────────────────
+   * NuLakaz brand palette — same source values as the storefront's
+   * globals.css (sampled from nulakaz.com). Token names are kept as
+   * `prime-*`, `mint-*`, `flash-*`, `amber-*`, `ink-*`, `paper`, `canvas`
+   * for zero churn across the 100+ existing class usages. The values are
+   * the NuLakaz colours; the names are historical.
+   * ───────────────────────────────────────────────────────────────────── */
 
-  --color-flash-50:  #fff1f0;
-  --color-flash-500: #ef3b2c;
-  --color-flash-700: #b51d11;
+  /* Primary burgundy ramp — replaces the previous green prime ramp.
+     prime-500 = the NuLakaz brand burgundy (#b75a74).
+     prime-700 (the most-used token in the codebase) lands on the
+     darker `--brand-darker` so admin chrome reads as deep, confident
+     burgundy without going pure black. */
+  --color-prime-50:  #f8f2f4;
+  --color-prime-100: #ecdce2;
+  --color-prime-200: #e7d3da;
+  --color-prime-300: #d1aab8;
+  --color-prime-400: #c07d92;
+  --color-prime-500: #b75a74;
+  --color-prime-600: #a04a64;
+  --color-prime-700: #82445a;
+  --color-prime-800: #723c4f;
+  --color-prime-900: #5c3342;
 
-  --color-mint-100:  #d8f5e6;
-  --color-mint-500:  #18b466;
-  --color-mint-600:  #0d8c4a;
+  /* Error / destructive — terracotta accent from the storefront tints */
+  --color-flash-50:  #f1d9d4;
+  --color-flash-500: #a85a44;
+  --color-flash-700: #7a3026;
 
-  --color-amber-50:  #fff7e6;
-  --color-amber-500: #f5a623;
-  --color-amber-700: #a26307;
+  /* Success — sage accent from the storefront tints */
+  --color-mint-100:  #dde7c5;
+  --color-mint-500:  #5e7f54;
+  --color-mint-600:  #4a6442;
 
-  --color-ink-100:   #f0eee8;
-  --color-ink-200:   #e2dfd7;
-  --color-ink-300:   #cfcabe;
-  --color-ink-500:   #76746c;
-  --color-ink-700:   #353330;
-  --color-ink-900:   #11130f;
-  --color-ink-950:   #070906;
+  /* Warning / pending — mustard accent from the storefront tints */
+  --color-amber-50:  #f5e7c4;
+  --color-amber-500: #a98937;
+  --color-amber-700: #7a6128;
 
-  --color-paper:     #f8f5ee;
-  --color-paper-dim: #ede9de;
+  /* Neutral / type — keyed off the storefront's foreground burgundy
+     (#5c3342) and foreground-muted (#8a5f6e) so the typography matches
+     the storefront's warm tone instead of cold neutral grey. */
+  --color-ink-100:   #f4e9ec;
+  --color-ink-200:   #ecdee3;
+  --color-ink-300:   #d1c0c7;
+  --color-ink-500:   #8a5f6e;
+  --color-ink-700:   #6e4252;
+  --color-ink-900:   #5c3342;
+  --color-ink-950:   #2e1a21;
 
-  --color-canvas:    #f6f5f1;
+  /* Surfaces — paper for cards, canvas for the page background.
+     Canvas matches the storefront's pale-pink body (#f8f2f4) so the two
+     apps feel like one product when switched between. */
+  --color-paper:     #ffffff;
+  --color-paper-dim: #faf5f6;
+
+  --color-canvas:    #f8f2f4;
 
   --font-sans:    var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-display), ui-serif, Georgia, serif;

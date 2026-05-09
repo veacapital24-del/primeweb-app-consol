@@ -15,7 +15,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
 
   let query = sb
     .from('products')
-    .select('id, sku, slug, name, description, image_url, retail_price_mur, wholesale_price_mur, wholesale_min_qty, is_hard_discount, active')
+    .select('id, sku, slug, name, description, image_url, retail_price_mur, wholesale_price_mur, wholesale_min_qty, is_hard_discount, active, category_slug, brand_slug, tags')
     .order('name')
 
   if (q) {

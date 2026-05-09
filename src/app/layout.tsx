@@ -18,8 +18,8 @@ const display = Fraunces({
 })
 
 export const metadata: Metadata = {
-  title: 'Primeweb — Admin',
-  description: 'Operator console for Primeweb',
+  title: 'NuLakaz — Admin',
+  description: 'Operator console for NuLakaz',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

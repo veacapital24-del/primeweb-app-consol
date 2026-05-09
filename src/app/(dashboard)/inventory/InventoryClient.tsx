@@ -14,7 +14,17 @@ type Row = {
   updated_at?: string | null
 }
 
-export function InventoryClient({ rows }: { rows: Row[] }) {
+export function InventoryClient({
+  rows,
+  locationId,
+  locationLabel,
+}: {
+  rows: Row[]
+  // null = warehouse-wide adjust (writes to `inventory`); UUID = per-store
+  // adjust (writes to `location_stock`).
+  locationId: string | null
+  locationLabel: string
+}) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [dialogTargets, setDialogTargets] = useState<AdjustTarget[]>([])
 
@@ -129,6 +139,8 @@ export function InventoryClient({ rows }: { rows: Row[] }) {
         targets={dialogTargets}
         open={dialogTargets.length > 0}
         onClose={closeDialog}
+        locationId={locationId}
+        locationLabel={locationLabel}
       />
     </>
   )

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 const SECTIONS = [
   { href: '/settings/business',     label: 'Business',     desc: 'Trade name, contact, VAT' },
   { href: '/settings/shipping',     label: 'Shipping',     desc: 'Free threshold, fees' },
+  { href: '/settings/pos',          label: 'POS',          desc: 'Receipts, shifts, defaults' },
   { href: '/settings/whatsapp',     label: 'WhatsApp',     desc: 'Channel + Cloud API' },
   { href: '/settings/team',         label: 'Admin users',  desc: 'Admins, wholesalers, retailers' },
   { href: '/settings/integrations', label: 'Integrations', desc: 'Supabase, edge functions' },
