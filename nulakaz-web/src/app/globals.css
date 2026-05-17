@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/*  NuLakaz brand tokens — sampled from live nulakaz.com (2026-04-16). */
+/* ------------------------------------------------------------------ */
+
+:root {
+  /* Brand palette */
+  --brand: #b75a74;            /* primary burgundy/rose (--accent-color) */
+  --brand-2: #b75a74;          /* price & CTA accent (--accent-color-2) */
+  --brand-dark: #723c4f;       /* hover / pressed (--accent-color-dark) */
+  --brand-darker: #82445a;     /* scroll header (--accent-color-scroll) */
+  --brand-soft: #e7d3da;       /* soft nav / search bg (--accent-color-scroll-bg) */
+  --brand-tint: rgb(163 85 113 / 0.15); /* translucent hover tint */
+  --brand-muted: #d1aab8;      /* muted dusty rose */
+
+  /* Neutrals */
+  --background: #f8f2f4;       /* body bg (pale pink) */
+  --surface: #ffffff;          /* card bg */
+  --foreground: #5c3342;       /* body text (deep burgundy) */
+  --foreground-muted: #8a5f6e; /* secondary text */
+  --border: rgb(92 51 66 / 0.12);
+}
+
+@theme inline {
+  /* Colors exposed as Tailwind utilities (bg-brand, text-brand, etc.) */
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-darker: var(--brand-darker);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-muted: var(--brand-muted);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-border: var(--border);
+
+  /* Typography */
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
+
+  /* Container */
+  --breakpoint-xs: 480px;
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Matches the site's headings: bolder weight, darker burgundy */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--foreground);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Currency / meta uses Georgia in the original — scope via .font-meta utility */
+.font-meta {
+  font-family: var(--font-serif);
+}
+
+/* ---------------------------------------------------------------------------
+ * Help & policies prose tweaks
+ * Scoped to .policy-prose so it never leaks into the rest of the site.
+ * Targets: lead paragraph, heading spacing, and <details> accordions used
+ * by the FAQ Q&A list.
+ * ------------------------------------------------------------------------- */
+.policy-prose .lead {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.55;
+  color: rgba(92, 51, 66, 0.78);
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+.policy-prose > h2:first-of-type,
+.policy-prose > .lead + h2 {
+  margin-top: 1rem;
+}
+
+.policy-prose details {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0.85rem 1.1rem;
+  margin: 0.5rem 0;
+  background: #fff;
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+.policy-prose details + details {
+  margin-top: 0.5rem;
+}
+.policy-prose details[open] {
+  border-color: rgba(183, 90, 116, 0.3);
+  box-shadow: 0 14px 32px -28px rgba(92, 51, 66, 0.4);
+}
+.policy-prose summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 15.5px;
+  line-height: 1.35;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+  padding-right: 1.75rem;
+}
+.policy-prose summary::-webkit-details-marker {
+  display: none;
+}
+.policy-prose summary::after {
+  content: "";
+  position: absolute;
+  right: 0.15rem;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-right: 1.6px solid rgba(183, 90, 116, 0.7);
+  border-bottom: 1.6px solid rgba(183, 90, 116, 0.7);
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 180ms ease;
+}
+.policy-prose details[open] summary::after {
+  transform: translateY(-30%) rotate(-135deg);
+}
+.policy-prose summary::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(183, 90, 116, 0.55);
+  flex-shrink: 0;
+}
+.policy-prose details[open] summary::before {
+  background: rgba(183, 90, 116, 1);
+}
+.policy-prose details > p,
+.policy-prose details > ul,
+.policy-prose details > ol {
+  margin-top: 0.65rem;
+  margin-bottom: 0;
+  font-size: 14px;
+  color: rgba(92, 51, 66, 0.85);
+}
+
+/* ---------------------------------------------------------------------------
+ * Single blog post prose tweaks
+ * Scoped to .blog-prose so it doesn't leak into product/policy pages.
+ * Adds an editorial drop cap, refined blockquote treatment, and figure
+ * caption styling for embedded images.
+ * ------------------------------------------------------------------------- */
+.blog-prose > p:first-of-type::first-letter {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 4.4rem;
+  line-height: 0.9;
+  float: left;
+  color: var(--brand);
+  margin: 0.32rem 0.6rem 0 0;
+  padding: 0;
+}
+
+.blog-prose blockquote {
+  position: relative;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 19px;
+  line-height: 1.5;
+  color: rgba(92, 51, 66, 0.92);
+  border-left: 3px solid var(--brand);
+  padding: 0.25rem 0 0.25rem 1.4rem;
+  margin: 1.75rem 0;
+  quotes: "\201C" "\201D" "\2018" "\2019";
+}
+.blog-prose blockquote::before {
+  content: open-quote;
+  position: absolute;
+  left: -0.15rem;
+  top: -0.45rem;
+  font-size: 2.6rem;
+  line-height: 1;
+  color: rgba(183, 90, 116, 0.35);
+}
+.blog-prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.blog-prose figure {
+  margin: 2rem 0;
+}
+.blog-prose figure img {
+  border-radius: 18px;
+}
+.blog-prose figcaption {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(92, 51, 66, 0.6);
+}
+
+.blog-prose hr {
+  border: 0;
+  height: 1px;
+  background: var(--border);
+  margin: 2.5rem auto;
+  width: 60%;
+}

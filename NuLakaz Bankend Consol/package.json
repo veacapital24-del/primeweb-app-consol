@@ -1,0 +1,35 @@
+{
+  "name": "prime-bankend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NODE_OPTIONS='--max-http-header-size=65536' next dev -p 3001",
+    "build": "next build",
+    "start": "NODE_OPTIONS='--max-http-header-size=65536' next start -p 3001",
+    "lint": "next lint",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:diff": "supabase db diff",
+    "fn:serve": "supabase functions serve",
+    "fn:deploy:webhook": "supabase functions deploy whatsapp-webhook --no-verify-jwt",
+    "fn:deploy:send": "supabase functions deploy whatsapp-send"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.45.4",
+    "jspdf": "^4.2.1",
+    "next": "^15.5.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "supabase": "^1.200.3",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@theme {
+  /* ─────────────────────────────────────────────────────────────────────
+   * NuLakaz brand palette — lockstep with NuLakaz Bankend Consol
+   * (src/app/globals.css). Same token names and values across apps.
+   * ───────────────────────────────────────────────────────────────────── */
+
+  --color-prime-50:  #f8f2f4;
+  --color-prime-100: #ecdce2;
+  --color-prime-200: #e7d3da;
+  --color-prime-300: #d1aab8;
+  --color-prime-400: #c07d92;
+  --color-prime-500: #b75a74;
+  --color-prime-600: #a04a64;
+  --color-prime-700: #82445a;
+  --color-prime-800: #723c4f;
+  --color-prime-900: #5c3342;
+
+  --color-flash-50:  #f1d9d4;
+  --color-flash-500: #a85a44;
+  --color-flash-700: #7a3026;
+
+  --color-mint-100:  #dde7c5;
+  --color-mint-500:  #5e7f54;
+  --color-mint-600:  #4a6442;
+
+  --color-amber-50:  #f5e7c4;
+  --color-amber-500: #a98937;
+  --color-amber-700: #7a6128;
+
+  --color-ink-100:   #f4e9ec;
+  --color-ink-200:   #ecdee3;
+  --color-ink-300:   #d1c0c7;
+  --color-ink-500:   #8a5f6e;
+  --color-ink-700:   #6e4252;
+  --color-ink-900:   #5c3342;
+  --color-ink-950:   #2e1a21;
+
+  --color-paper:     #ffffff;
+  --color-paper-dim: #faf5f6;
+
+  --color-canvas:    #f8f2f4;
+
+  --font-sans:    var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-display), ui-serif, Georgia, serif;
+}
+
+@layer base {
+  html, body {
+    background: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3 { letter-spacing: -0.02em; }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+::selection { background: var(--color-prime-200); color: var(--color-ink-900); }
+
+:where(button, a):focus-visible {
+  outline: 2px solid var(--color-prime-500);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Sidebar nav — matches admin console */
+@utility nav-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-prime-400) 35%, transparent) transparent;
+}
+.nav-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.nav-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-prime-400) 40%, transparent);
+  border-radius: 999px;
+}
+.nav-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-prime-500) 55%, transparent);
+}
+
+/* App shell — same as admin dashboard */
+.dashboard-canvas {
+  background:
+    radial-gradient(ellipse 90% 60% at 0% -10%, color-mix(in srgb, var(--color-prime-200) 55%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, color-mix(in srgb, var(--color-mint-100) 45%, transparent), transparent 50%),
+    var(--color-canvas);
+}
+
+.glass-card {
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--color-paper) 92%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--color-paper) 80%, var(--color-prime-200));
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--color-ink-900) 4%, transparent),
+    0 16px 48px -20px color-mix(in srgb, var(--color-prime-800) 18%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-motion,
+  .glass-card {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Receipt print */
+@media print {
+  html, body { background: white !important; color: black !important; }
+  body * { visibility: hidden !important; }
+  .receipt, .receipt * { visibility: visible !important; }
+  .receipt {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    width: 80mm !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 4mm !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+  .no-print { display: none !important; }
+  @page { size: 80mm auto; margin: 0; }
+}
