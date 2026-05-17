@@ -38,6 +38,13 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    heading: 'Procurement',
+    items: [
+      { href: '/purchase-orders', label: 'Purchase Orders', icon: <IconTruck /> },
+      { href: '/suppliers', label: 'Suppliers', icon: <IconBuilding /> },
+    ],
+  },
+  {
     heading: 'People',
     items: [{ href: '/customers', label: 'Customers', icon: <IconShopper /> }],
   },
@@ -422,6 +429,26 @@ function IconPin() {
     <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
       <circle cx="12" cy="10" r="3" />
+    </svg>
+  )
+}
+function IconTruck() {
+  return (
+    <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3" />
+      <rect x="9" y="11" width="14" height="10" rx="2" />
+      <circle cx="12" cy="21" r="1" />
+      <circle cx="20" cy="21" r="1" />
+    </svg>
+  )
+}
+function IconBuilding() {
+  return (
+    <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21h18" />
+      <path d="M5 21V7l7-4 7 4v14" />
+      <path d="M9 21v-4h6v4" />
+      <path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01" />
     </svg>
   )
 }

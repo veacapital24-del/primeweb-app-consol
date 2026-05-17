@@ -138,6 +138,45 @@ export type Order = {
   created_at: string
 }
 
+export type Supplier = {
+  id: string
+  name: string
+  contact_name: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
+  notes: string | null
+  active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export const PO_STATUSES = ['draft', 'sent', 'partial', 'received', 'cancelled'] as const
+export type PoStatus = (typeof PO_STATUSES)[number]
+
+export type PurchaseOrder = {
+  id: string
+  po_number: string
+  supplier_id: string | null
+  location_id: string | null
+  status: PoStatus
+  expected_date: string | null
+  notes: string | null
+  total_cost_mur: number
+  created_at: string
+  updated_at: string
+}
+
+export type PurchaseOrderLine = {
+  id: string
+  po_id: string
+  product_id: string
+  qty_ordered: number
+  qty_received: number
+  unit_cost_mur: number
+  created_at: string
+}
+
 export type WhatsAppMessage = {
   id: number
   direction: 'in' | 'out'
