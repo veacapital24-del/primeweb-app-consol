@@ -19,12 +19,18 @@ export default async function LoginPage({ searchParams }: PageProps) {
   const { signed_out, error } = await searchParams
 
   // Detect first-run: zero admins → show the bootstrap form instead of sign-in.
-  const sb = adminClient()
-  const { count } = await sb
-    .from('profiles')
-    .select('id', { count: 'exact', head: true })
-    .eq('role', 'admin')
-  const needsBootstrap = (count ?? 0) === 0
+  let needsBootstrap = false
+  try {
+    const sb = adminClient()
+    const { count, error: countErr } = await sb
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'admin')
+    if (countErr) console.error('[login] admin count:', countErr.message)
+    needsBootstrap = !countErr && (count ?? 0) === 0
+  } catch (err) {
+    console.error('[login] bootstrap check failed:', err)
+  }
 
   const storefront = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'https://nulakaz-web.vercel.app'
 
@@ -200,7 +206,21 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
           {/* Form card */}
           <div className="rounded-3xl border border-ink-300/60 bg-paper p-6 shadow-[0_24px_60px_-30px_rgba(92,51,66,0.45)] sm:p-7">
-            {needsBootstrap ? <BootstrapForm /> : <LoginForm />}
+            {needsBootstrap ? (
+              <BootstrapForm />
+            ) : (
+              <LoginForm
+                initialError={
+                  error === 'not-admin'
+                    ? "That account doesn't have admin access. Ask an existing admin to promote it."
+                    : error === 'config'
+                      ? 'Server configuration error. Contact support.'
+                      : error === 'session'
+                        ? 'Your session expired. Please sign in again.'
+                        : undefined
+                }
+              />
+            )}
           </div>
 
           {/* Footer hints */}

@@ -4,7 +4,12 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { adminClient, serverClient } from '@/lib/supabase'
 
-export async function signIn(form: FormData) {
+export type AuthFormState = { error?: string; ok?: boolean } | null
+
+export async function signIn(
+  _prev: AuthFormState,
+  form: FormData,
+): Promise<AuthFormState> {
   const email = String(form.get('email') ?? '').trim().toLowerCase()
   const password = String(form.get('password') ?? '')
   if (!email || !password) {
@@ -21,7 +26,10 @@ export async function signIn(form: FormData) {
   redirect('/')
 }
 
-export async function bootstrapFirstAdmin(form: FormData) {
+export async function bootstrapFirstAdmin(
+  _prev: AuthFormState,
+  form: FormData,
+): Promise<AuthFormState> {
   const email = String(form.get('email') ?? '').trim().toLowerCase()
   const password = String(form.get('password') ?? '')
   const fullName = String(form.get('full_name') ?? '').trim() || null
@@ -61,7 +69,10 @@ export async function bootstrapFirstAdmin(form: FormData) {
   redirect('/')
 }
 
-export async function sendRecovery(form: FormData) {
+export async function sendRecovery(
+  _prev: AuthFormState,
+  form: FormData,
+): Promise<AuthFormState> {
   const email = String(form.get('email') ?? '').trim().toLowerCase()
   if (!email) return { error: 'Enter your email first.' }
   const sb = await serverClient()

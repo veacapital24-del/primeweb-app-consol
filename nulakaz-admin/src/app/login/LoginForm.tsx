@@ -1,28 +1,26 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { signIn, sendRecovery } from './actions'
+import { useActionState, useState } from 'react'
+import { signIn, sendRecovery, type AuthFormState } from './actions'
 
 export function LoginForm({ initialError }: { initialError?: string }) {
-  const [error, setError] = useState<string | null>(initialError ?? null)
-  const [recoverySent, setRecoverySent] = useState(false)
-  const [isPending, start] = useTransition()
+  const [state, formAction, isPending] = useActionState<AuthFormState, FormData>(
+    signIn,
+    initialError ? { error: initialError } : null,
+  )
+  const [recoveryState, recoveryAction, recoveryPending] = useActionState<
+    AuthFormState,
+    FormData
+  >(sendRecovery, null)
   const [showForgot, setShowForgot] = useState(false)
   const [email, setEmail] = useState('')
 
+  const error = state?.error ?? null
+  const recoverySent = recoveryState?.ok === true
+
   return (
     <div className="space-y-4">
-      <form
-        action={(form) => {
-          setError(null)
-          setRecoverySent(false)
-          start(async () => {
-            const result = await signIn(form)
-            if (result?.error) setError(result.error)
-          })
-        }}
-        className="space-y-4"
-      >
+      <form action={formAction} className="space-y-4">
         <Field label="Email">
           <InputWithIcon
             icon={
@@ -108,14 +106,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
 
       {showForgot && (
         <form
-          action={(form) => {
-            setError(null)
-            start(async () => {
-              const result = await sendRecovery(form)
-              if (result?.error) setError(result.error)
-              else setRecoverySent(true)
-            })
-          }}
+          action={recoveryAction}
           className="rounded-2xl border border-ink-300/60 bg-paper-dim/60 p-4"
         >
           <input type="hidden" name="email" value={email} />
@@ -123,12 +114,15 @@ export function LoginForm({ initialError }: { initialError?: string }) {
             We'll send a password reset link to{' '}
             <strong className="font-semibold text-ink-900">{email || 'the email above'}</strong>.
           </p>
+          {recoveryState?.error && (
+            <p className="mt-2 text-[11.5px] font-semibold text-flash-700">{recoveryState.error}</p>
+          )}
           <button
             type="submit"
-            disabled={isPending || !email}
+            disabled={recoveryPending || !email}
             className="mt-3 w-full rounded-xl border border-ink-300 bg-paper px-3 py-2 text-xs font-bold text-ink-900 transition-all hover:border-prime-500 hover:text-prime-700 disabled:opacity-50"
           >
-            {isPending ? 'Sending…' : 'Send reset link'}
+            {recoveryPending ? 'Sending…' : 'Send reset link'}
           </button>
           {recoverySent && (
             <p className="mt-3 inline-flex items-center gap-2 text-[11.5px] font-semibold text-mint-600">

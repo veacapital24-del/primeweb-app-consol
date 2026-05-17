@@ -1,23 +1,17 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { bootstrapFirstAdmin } from './actions'
+import { useActionState } from 'react'
+import { bootstrapFirstAdmin, type AuthFormState } from './actions'
 
 export function BootstrapForm() {
-  const [error, setError] = useState<string | null>(null)
-  const [isPending, start] = useTransition()
+  const [state, formAction, isPending] = useActionState<AuthFormState, FormData>(
+    bootstrapFirstAdmin,
+    null,
+  )
+  const error = state?.error ?? null
 
   return (
-    <form
-      action={(form) => {
-        setError(null)
-        start(async () => {
-          const result = await bootstrapFirstAdmin(form)
-          if (result?.error) setError(result.error)
-        })
-      }}
-      className="space-y-4"
-    >
+    <form action={formAction} className="space-y-4">
       <div className="flex items-start gap-3 rounded-2xl border border-prime-200/70 bg-prime-50 px-3.5 py-3 text-[12px] leading-relaxed text-ink-700">
         <span aria-hidden className="mt-1 block h-1.5 w-1.5 shrink-0 rounded-full bg-prime-700" />
         <span>
