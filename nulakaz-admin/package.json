@@ -15,8 +15,8 @@
     "fn:deploy:send": "supabase functions deploy whatsapp-send"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.45.4",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.105.4",
     "jspdf": "^4.2.1",
     "next": "^15.5.4",
     "react": "19.0.0",
