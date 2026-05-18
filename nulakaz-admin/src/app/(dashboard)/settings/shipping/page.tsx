@@ -13,7 +13,6 @@ export default async function ShippingSettingsPage() {
   return (
     <SettingForm
       settingKey="shipping"
-      title="Shipping & checkout"
       subtitle="The storefront cart progress bar and order summary read these values."
       values={values}
       fields={[

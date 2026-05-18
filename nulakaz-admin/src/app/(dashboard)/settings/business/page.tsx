@@ -13,7 +13,6 @@ export default async function BusinessSettingsPage() {
   return (
     <SettingForm
       settingKey="business"
-      title="Business"
       subtitle="Your storefront identity — used in the WhatsApp message, footer, and emails."
       values={values}
       fields={[

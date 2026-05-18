@@ -17,6 +17,14 @@ export type DashboardData = {
   channelTotal: number
   wholesaleShare: number
   whatsappCount: number
+  reels: {
+    activeCount: number
+    viewsWeek: number
+    addToCartWeek: number
+  }
+  procurement: {
+    openCount: number
+  }
   stock: {
     soldOut: { id: string; name: string }[]
     low: { id: string; name: string; available: number }[]
@@ -56,6 +64,13 @@ export function DashboardView({ data }: { data: DashboardData }) {
             <Link href="/products/new" className="dashboard-cta-primary">
               <IconPlus />
               New product
+            </Link>
+            <Link href="/reels/new" className="dashboard-cta-primary">
+              <IconPlus />
+              New reel
+            </Link>
+            <Link href="/purchase-orders/new" className="dashboard-cta-secondary">
+              New PO
             </Link>
             <Link href="/orders" className="dashboard-cta-secondary">
               View orders
@@ -177,6 +192,70 @@ export function DashboardView({ data }: { data: DashboardData }) {
             </ul>
           </article>
         </div>
+      </section>
+
+      {/* Reels + Procurement */}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5" aria-label="Reels and procurement">
+        <article className="glass-card p-6 lg:col-span-2">
+          <CardHead
+            title="Shoppable reels"
+            desc="7-day engagement from the mobile Watch tab"
+            action={{ href: '/reels', label: 'Manage reels' }}
+          />
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <MiniStat label="Active reels" value={data.reels.activeCount} icon={<IconPlay />} />
+            <MiniStat label="Views (7d)" value={data.reels.viewsWeek} icon={<IconEye />} accent="prime" />
+            <MiniStat label="Add to cart" value={data.reels.addToCartWeek} icon={<IconCart />} accent="mint" />
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <Link
+              href="/reels/new"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-prime-700 px-4 py-2 text-xs font-bold text-paper shadow-md shadow-prime-900/15 transition hover:bg-prime-800"
+            >
+              <IconPlus />
+              Add reel
+            </Link>
+            {data.reels.activeCount === 0 && (
+              <p className="text-xs text-ink-500">No active reels — create one to start the funnel.</p>
+            )}
+          </div>
+        </article>
+
+        <article className="glass-card p-6">
+          <CardHead
+            title="Procurement"
+            desc="Open purchase orders"
+            action={{ href: '/purchase-orders', label: 'View POs' }}
+          />
+          <div className="mt-5 flex items-end gap-5">
+            <div>
+              <p
+                className={`font-display text-5xl font-black tabular-nums tracking-tight ${
+                  data.procurement.openCount > 0 ? 'text-amber-600' : 'text-ink-900'
+                }`}
+              >
+                {data.procurement.openCount}
+              </p>
+              <p className="mt-1 text-sm text-ink-500">open PO{data.procurement.openCount !== 1 ? 's' : ''}</p>
+            </div>
+            <div className="flex-1" />
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link
+              href="/purchase-orders/new"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-prime-700 px-4 py-2 text-xs font-bold text-paper shadow-md shadow-prime-900/15 transition hover:bg-prime-800"
+            >
+              <IconPlus />
+              New PO
+            </Link>
+            <Link
+              href="/suppliers"
+              className="inline-flex items-center rounded-xl border border-ink-300/80 bg-paper px-4 py-2 text-xs font-bold text-ink-800 transition hover:border-prime-400 hover:text-prime-700"
+            >
+              Suppliers
+            </Link>
+          </div>
+        </article>
       </section>
 
       {/* Orders feed */}
@@ -469,6 +548,31 @@ function formatRelative(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
+function MiniStat({
+  label,
+  value,
+  icon,
+  accent,
+}: {
+  label: string
+  value: number
+  icon: React.ReactNode
+  accent?: 'prime' | 'mint'
+}) {
+  const iconBg = accent === 'prime'
+    ? 'bg-prime-700 text-paper'
+    : accent === 'mint'
+      ? 'bg-mint-500 text-paper'
+      : 'bg-ink-100 text-ink-700'
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-2xl bg-canvas/60 px-3 py-4 ring-1 ring-ink-200/50 text-center">
+      <div className={`grid h-9 w-9 place-items-center rounded-xl ${iconBg}`}>{icon}</div>
+      <p className="font-display text-2xl font-black tabular-nums text-ink-900">{value}</p>
+      <p className="text-[11px] font-semibold text-ink-500">{label}</p>
+    </div>
+  )
+}
+
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
 const ic = 'h-5 w-5'
@@ -514,6 +618,30 @@ function IconWhatsApp({ className = ic }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12a8 8 0 1 1-3.6-6.7L21 4l-1 4A8 8 0 0 1 21 12Z" />
+    </svg>
+  )
+}
+function IconPlay() {
+  return (
+    <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <path d="m10 8 6 4-6 4z" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+function IconEye() {
+  return (
+    <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+function IconCart() {
+  return (
+    <svg viewBox="0 0 24 24" className={ic} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+      <path d="M3 6h18M16 10a4 4 0 0 1-8 0" />
     </svg>
   )
 }

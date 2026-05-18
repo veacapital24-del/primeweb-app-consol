@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { adminClient } from '@/lib/supabase'
+import { SettingsFilterTabs } from '../SettingsShell'
 import { RoleSelect, OptInToggle } from './RoleSelect'
 
 export const dynamic = 'force-dynamic'
@@ -44,7 +45,18 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
     return acc
   }, { all: 0, admin: 0, wholesaler: 0, retailer: 0 })
 
-  const tabs = (['all', 'admin', 'wholesaler', 'retailer'] as const).map((k) => ({ key: k, count: counts[k] ?? 0 }))
+  const tabs = (['all', 'admin', 'wholesaler', 'retailer'] as const).map((k) => {
+    const params = new URLSearchParams()
+    if (q) params.set('q', q)
+    if (k !== 'all') params.set('role', k)
+    const qs = params.toString()
+    return {
+      key: k,
+      label: k === 'all' ? 'All' : k,
+      count: counts[k] ?? 0,
+      href: `/settings/team${qs ? `?${qs}` : ''}`,
+    }
+  })
 
   const ids = (profiles ?? []).map((p) => p.id)
   const { data: orderCounts } = ids.length > 0
@@ -57,56 +69,30 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   }
 
   return (
-    <div className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-display text-2xl font-black tracking-tight">Admin users</h2>
-          <p className="mt-1 text-sm text-ink-500">
-            Operators only — admins, wholesalers, retailers. Customer accounts live under <Link href="/customers" className="font-semibold text-prime-700 underline">Customers</Link>.
-          </p>
-        </div>
-        <Link
-          href="/settings/team/new?kind=team"
-          className="rounded-xl bg-prime-700 px-4 py-2 text-sm font-bold text-paper transition hover:bg-prime-800"
-        >
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="max-w-lg text-sm text-ink-500">
+          Operators only. Customer accounts live under{' '}
+          <Link href="/customers" className="font-semibold text-prime-700 hover:underline">Customers</Link>.
+        </p>
+        <Link href="/settings/team/new?kind=team" className="settings-form-submit shrink-0">
           + Invite teammate
         </Link>
-      </header>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <form className="relative flex-1 min-w-[220px] max-w-md">
-          <svg className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search name, phone, or shop…"
-            className="w-full rounded-lg border border-ink-200 bg-paper py-1.5 pl-9 pr-3 text-sm focus:border-prime-500 focus:outline-none"
-          />
-          <input type="hidden" name="role" value={role} />
-        </form>
-        <div className="flex flex-wrap gap-1 text-xs font-semibold">
-          {tabs.map((t) => {
-            const active = t.key === role
-            const params = new URLSearchParams()
-            if (q) params.set('q', q)
-            if (t.key !== 'all') params.set('role', t.key)
-            const href = `/settings/team${params.toString() ? `?${params.toString()}` : ''}`
-            return (
-              <Link
-                key={t.key}
-                href={href}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 capitalize transition ${
-                  active ? 'bg-ink-900 text-paper' : 'text-ink-700 hover:bg-paper-dim/60'
-                }`}
-              >
-                {t.key} <span className={active ? 'opacity-70' : 'text-ink-500'}>{t.count}</span>
-              </Link>
-            )
-          })}
-        </div>
       </div>
 
-      <div className="grid gap-2 text-xs sm:grid-cols-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+        <form className="settings-search">
+          <svg className="settings-search-icon h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" strokeLinecap="round" />
+          </svg>
+          <input name="q" defaultValue={q} placeholder="Search name, phone, or shop…" />
+          <input type="hidden" name="role" value={role} />
+        </form>
+        <SettingsFilterTabs tabs={tabs} activeKey={role} />
+      </div>
+
+      <div className="settings-role-legend">
         <Legend role="admin"      desc="Full access to this admin console." />
         <Legend role="wholesaler" desc="High-volume B2B. Special account terms." />
         <Legend role="retailer"   desc="Tabagie buyer — sees wholesale tier on the storefront." />
@@ -115,7 +101,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
       {/* Mobile: card list */}
       <ul className="space-y-2 sm:hidden">
         {(profiles ?? []).map((p) => (
-          <li key={p.id} className="rounded-2xl bg-paper p-4 ring-1 ring-ink-200">
+          <li key={p.id} className="settings-panel p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="truncate font-semibold text-ink-900">{p.full_name ?? '—'}</div>
@@ -152,7 +138,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
       </ul>
 
       {/* Tablet+: table */}
-      <div className="hidden overflow-x-auto rounded-2xl bg-paper ring-1 ring-ink-200 sm:block">
+      <div className="settings-panel hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr className="text-left text-[11px] font-bold uppercase tracking-widest text-ink-500">
@@ -210,7 +196,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
 
 function Legend({ role, desc }: { role: string; desc: string }) {
   return (
-    <div className="rounded-xl bg-paper p-3 ring-1 ring-ink-200">
+    <div className="settings-role-legend-item">
       <div className="font-bold capitalize text-ink-900">{role}</div>
       <div className="mt-0.5 text-ink-500">{desc}</div>
     </div>

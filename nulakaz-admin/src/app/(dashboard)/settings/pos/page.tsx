@@ -18,7 +18,6 @@ export default async function PosSettingsPage() {
   return (
     <SettingForm
       settingKey="pos"
-      title="POS"
       subtitle="Receipt format, shift defaults, and other POS-only options. Read by the Prime POS app."
       values={values}
       fields={[

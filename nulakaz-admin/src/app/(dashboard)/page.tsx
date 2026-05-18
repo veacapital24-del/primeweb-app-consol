@@ -23,7 +23,10 @@ export default async function DashboardPage() {
     if (name) displayName = name.split(/\s+/)[0] ?? name
   }
 
-  const [products, lowStock, outStock, ordersWeek, ordersPending, whatsappWeek, recentOrders] =
+  const [
+    products, lowStock, outStock, ordersWeek, ordersPending, whatsappWeek, recentOrders,
+    reelEventsWeek, activeReels, openPOs,
+  ] =
     await Promise.all([
       sb.from('products').select('id', { count: 'exact', head: true }).eq('active', true),
       sb
@@ -50,6 +53,16 @@ export default async function DashboardPage() {
         )
         .order('created_at', { ascending: false })
         .limit(8),
+      sb
+        .from('reel_events')
+        .select('event_type')
+        .gte('created_at', since)
+        .in('event_type', ['view', 'add_to_cart']),
+      sb.from('reels').select('id', { count: 'exact', head: true }).eq('active', true),
+      sb
+        .from('purchase_orders')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['draft', 'sent', 'partial']),
     ])
 
   const week = ordersWeek.data ?? []
@@ -60,6 +73,10 @@ export default async function DashboardPage() {
   }, {})
   const wholesaleShare =
     week.length > 0 ? (week.filter((o) => o.is_wholesale).length / week.length) * 100 : 0
+
+  const reelEvents = reelEventsWeek.data ?? []
+  const reelViewsWeek = reelEvents.filter((e) => e.event_type === 'view').length
+  const reelAddToCartWeek = reelEvents.filter((e) => e.event_type === 'add_to_cart').length
 
   const data: DashboardData = {
     greeting: `${greetingTime}, ${displayName}`,
@@ -83,6 +100,14 @@ export default async function DashboardPage() {
     channelTotal: week.length,
     wholesaleShare,
     whatsappCount: whatsappWeek.count ?? 0,
+    reels: {
+      activeCount: activeReels.count ?? 0,
+      viewsWeek: reelViewsWeek,
+      addToCartWeek: reelAddToCartWeek,
+    },
+    procurement: {
+      openCount: openPOs.count ?? 0,
+    },
     stock: {
       soldOut: outStock.data ?? [],
       low: (lowStock.data ?? []).map((r) => ({

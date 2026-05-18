@@ -118,6 +118,7 @@ create table if not exists reels (
   platform text not null check (platform in ('instagram', 'tiktok', 'facebook')),
   external_url text,
   thumbnail_url text,
+  video_url text,
   caption text,
   posted_at timestamptz,
   active boolean not null default true,

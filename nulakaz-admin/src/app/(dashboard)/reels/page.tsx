@@ -19,6 +19,7 @@ type ReelRow = {
   platform: string
   caption: string | null
   thumbnail_url: string | null
+  video_url: string | null
   posted_at: string | null
   active: boolean
   reel_products: Array<{ product_id: string; products: { name: string; retail_price_mur: number } | null }>
@@ -29,7 +30,7 @@ export default async function ReelsListPage() {
 
   const { data: reels } = await sb
     .from('reels')
-    .select('id, slug, platform, caption, thumbnail_url, posted_at, active, reel_products(product_id, products(name, retail_price_mur))')
+    .select('id, slug, platform, caption, thumbnail_url, video_url, posted_at, active, reel_products(product_id, products(name, retail_price_mur))')
     .order('posted_at', { ascending: false, nullsFirst: false })
     .returns<ReelRow[]>()
 
@@ -84,6 +85,15 @@ export default async function ReelsListPage() {
                 <span className="absolute left-2 top-2 rounded-full bg-paper/85 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ink-900 backdrop-blur">
                   {r.platform}
                 </span>
+                {r.video_url ? (
+                  <span className="absolute left-2 bottom-2 rounded-full bg-mint-100/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-mint-800 backdrop-blur">
+                    In-app video
+                  </span>
+                ) : (
+                  <span className="absolute left-2 bottom-2 rounded-full bg-amber-100/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900 backdrop-blur">
+                    No video URL
+                  </span>
+                )}
                 {!r.active && (
                   <span className="absolute right-2 top-2">
                     <ActiveBadge active={false} />

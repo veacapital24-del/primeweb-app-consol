@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useActionState } from 'react'
 import { saveSettings } from './actions'
 import { Field, Toggle, inputCls } from '@/components/admin/ui'
 
@@ -10,62 +10,82 @@ type FieldDef =
   | { name: string; label: string; type: 'bool'; hint?: string }
   | { name: string; label: string; type: 'textarea'; rows?: number; placeholder?: string; hint?: string }
 
+type FormState = { error?: string; saved?: boolean } | null
+
+async function saveSettingsAction(
+  settingKey: string,
+  _prev: FormState,
+  form: FormData,
+): Promise<FormState> {
+  try {
+    await saveSettings(settingKey, form)
+    return { saved: true }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Failed to save' }
+  }
+}
+
 export function SettingForm({
   settingKey,
-  title,
   subtitle,
   values,
   fields,
 }: {
   settingKey: string
-  title: string
   subtitle?: string
   values: Record<string, unknown>
   fields: FieldDef[]
 }) {
-  const [isPending, start] = useTransition()
-  const [saved, setSaved] = useState(false)
+  const boundAction = saveSettingsAction.bind(null, settingKey)
+  const [state, formAction, isPending] = useActionState<FormState, FormData>(boundAction, null)
   const boolKeys = fields.filter((f) => f.type === 'bool').map((f) => f.name).join(',')
 
   return (
-    <form
-      action={(form) => {
-        setSaved(false)
-        start(async () => {
-          await saveSettings(settingKey, form)
-          setSaved(true)
-          setTimeout(() => setSaved(false), 2000)
-        })
-      }}
-      className="glass-card p-5 md:p-6"
-    >
-      <div className="mb-5 flex items-baseline justify-between gap-3">
-        <div>
-          <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">{title}</h2>
-          {subtitle && <p className="mt-1 text-sm text-ink-500">{subtitle}</p>}
+    <form action={formAction} className="settings-form">
+      {subtitle && (
+        <p className="border-b border-ink-200/60 px-6 py-3 text-sm leading-relaxed text-ink-500">
+          {subtitle}
+        </p>
+      )}
+
+      <div className="settings-form-header">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-500">Fields</p>
+        <div className="flex flex-wrap items-center gap-2">
+          {state?.saved && (
+            <span className="settings-saved-badge" role="status">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                <path d="M20 6 9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Saved
+            </span>
+          )}
+          {state?.error && (
+            <span className="settings-error-badge" role="alert">
+              {state.error}
+            </span>
+          )}
         </div>
-        {saved && (
-          <span className="rounded-full bg-mint-50 px-2.5 py-1 text-[11px] font-bold text-mint-700 ring-1 ring-mint-500/25">
-            Saved
-          </span>
-        )}
       </div>
 
       <input type="hidden" name="_bools" value={boolKeys} />
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="settings-form-fields">
         {fields.map((f) => (
           <SettingField key={f.name} field={f} value={values[f.name]} />
         ))}
       </div>
 
-      <div className="mt-6 flex justify-end border-t border-ink-200/60 pt-5">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-xl bg-prime-700 px-5 py-2.5 text-sm font-bold text-paper shadow-md shadow-prime-900/15 transition hover:bg-prime-800 disabled:opacity-50"
-        >
-          {isPending ? 'Saving…' : 'Save changes'}
+      <div className="settings-form-footer">
+        <p className="text-xs text-ink-500">Changes apply to the live storefront after save.</p>
+        <button type="submit" disabled={isPending} className="settings-form-submit">
+          {isPending ? (
+            <>
+              <span className="settings-form-spinner" aria-hidden />
+              Saving…
+            </>
+          ) : (
+            'Save changes'
+          )}
         </button>
       </div>
     </form>
@@ -99,7 +119,7 @@ function SettingField({ field, value }: { field: FieldDef; value: unknown }) {
         <div className="relative">
           <input name={field.name} type="number" defaultValue={String(value ?? '')} className={inputCls} />
           {field.suffix && (
-            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-ink-500">
+            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-ink-500">
               {field.suffix}
             </span>
           )}

@@ -1,13 +1,20 @@
-import { PageHeader } from '@/components/PageHeader'
 import { getWebsiteSettings, updateWebsiteSetting, deleteWebsiteSetting } from '@/lib/supabase'
+import { SettingsPanel, SettingsStatusPill } from '../SettingsShell'
+import { MaintenanceModeToggle } from '@/components/settings/MaintenanceModeToggle'
+import { inputCls } from '@/components/admin/ui'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
 export default async function WebsiteSettingsPage() {
   const settings = await getWebsiteSettings(true)
-  const maintenanceSetting = settings.find((s: any) => s.setting_name === 'maintenance_mode')
+  const maintenanceSetting = settings.find(
+    (s: { setting_name: string }) => s.setting_name === 'maintenance_mode',
+  )
   const maintenanceEnabled = maintenanceSetting?.setting_value === 'true'
+  const otherSettings = settings.filter(
+    (s: { setting_name: string }) => s.setting_name !== 'maintenance_mode',
+  )
 
   async function handleUpsert(formData: FormData) {
     'use server'
@@ -27,168 +34,121 @@ export default async function WebsiteSettingsPage() {
     redirect('/settings/website')
   }
 
-  async function handleMaintenanceToggle(formData: FormData) {
-    'use server'
-    const enabled = formData.get('enabled') === 'true'
-    await updateWebsiteSetting(
-      {
-        id: formData.get('id') as string | undefined,
-        setting_name: 'maintenance_mode',
-        setting_value: enabled ? 'true' : 'false',
-        data_type: 'boolean',
-      },
-      true,
-    )
-    redirect('/settings/website')
-  }
-
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Website Settings"
-        subtitle="Manage dynamic configuration used across the site."
-        breadcrumbs={[{ label: 'Admin' }, { label: 'Settings' }, { label: 'Website Settings' }]}
-      />
-
-      <div className="grid gap-6 md:grid-cols-[360px_1fr]">
-        <form action={handleUpsert} className="space-y-4 rounded-2xl border border-ink-200/70 bg-paper p-5 shadow-sm">
-          <h2 className="text-lg font-bold text-ink-900">Add New Setting</h2>
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-ink-700">
-              Setting Name
-              <input
-                type="text"
-                name="setting_name"
-                required
-                placeholder="e.g. site_title"
-                className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-prime-500 focus:outline-none"
-              />
-            </label>
-            <label className="block text-sm font-semibold text-ink-700">
-              Setting Value
-              <input
-                type="text"
-                name="setting_value"
-                placeholder="e.g. NuLakaz - Online Grocery"
-                className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-prime-500 focus:outline-none"
-              />
-            </label>
-            <label className="block text-sm font-semibold text-ink-700">
-              Data Type
-              <select
-                name="data_type"
-                className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-prime-500 focus:outline-none"
-                defaultValue="string"
-              >
-                <option value="string">String</option>
-                <option value="number">Number</option>
-                <option value="boolean">Boolean</option>
-                <option value="json">JSON</option>
-              </select>
-            </label>
-          </div>
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center rounded-lg bg-prime-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-prime-800"
-          >
-            Add Setting
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,340px)_1fr]">
+      <SettingsPanel title="Add setting" subtitle="Create a new key-value pair for the storefront.">
+        <form action={handleUpsert} className="space-y-4">
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-semibold text-ink-600">Setting name</span>
+            <input type="text" name="setting_name" required placeholder="e.g. site_title" className={inputCls} />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-semibold text-ink-600">Value</span>
+            <input type="text" name="setting_value" placeholder="e.g. NuLakaz - Online Grocery" className={inputCls} />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-semibold text-ink-600">Data type</span>
+            <select name="data_type" className={inputCls} defaultValue="string">
+              <option value="string">String</option>
+              <option value="number">Number</option>
+              <option value="boolean">Boolean</option>
+              <option value="json">JSON</option>
+            </select>
+          </label>
+          <button type="submit" className="settings-form-submit w-full justify-center">
+            Add setting
           </button>
         </form>
+      </SettingsPanel>
 
-        <div className="space-y-4 rounded-2xl border border-ink-200/70 bg-paper p-5 shadow-sm">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="text-lg font-bold text-ink-900">Existing Settings</h2>
-            <span className="text-xs text-ink-500">{settings.length} total</span>
-          </div>
+      <div className="space-y-6">
+        <SettingsPanel
+          title="Maintenance mode"
+          subtitle="Take the public storefront offline while you deploy or run updates."
+          badge={
+            <SettingsStatusPill tone={maintenanceEnabled ? 'flash' : 'mint'}>
+              {maintenanceEnabled ? 'Offline' : 'Live'}
+            </SettingsStatusPill>
+          }
+        >
+          <MaintenanceModeToggle
+            settingId={maintenanceSetting?.id}
+            enabled={maintenanceEnabled}
+          />
+        </SettingsPanel>
 
-          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-ink-100 bg-ink-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-base font-bold text-ink-900">Maintenance Mode</h3>
-              <p className="text-sm text-ink-600">Temporarily take the storefront offline for updates.</p>
-            </div>
-            <form action={handleMaintenanceToggle} className="flex items-center gap-2 mt-3 sm:mt-0">
-              <input type="hidden" name="id" value={maintenanceSetting?.id ?? ''} />
-              <input type="hidden" name="enabled" value={(!maintenanceEnabled).toString()} />
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  maintenanceEnabled ? 'bg-red-100 text-red-700' : 'bg-mint-100 text-mint-700'
-                }`}
-              >
-                {maintenanceEnabled ? 'Active' : 'Inactive'}
-              </span>
-              <button
-                type="submit"
-                className={`rounded-lg px-4 py-2 text-sm font-semibold transition shadow-sm ${
-                  maintenanceEnabled 
-                    ? 'bg-red-600 hover:bg-red-700 text-white' 
-                    : 'bg-prime-700 hover:bg-prime-800 text-white'
-                }`}
-              >
-                {maintenanceEnabled ? 'Disable Maintenance' : 'Enable Maintenance'}
-              </button>
-            </form>
-          </div>
-
-          {settings.length === 0 ? (
-            <p className="text-sm text-ink-600">No settings yet. Add your first setting on the left.</p>
+        <SettingsPanel
+          title="Existing settings"
+          subtitle={`${otherSettings.length} key${otherSettings.length === 1 ? '' : 's'} configured`}
+        >
+          {otherSettings.length === 0 ? (
+            <p className="text-sm text-ink-500">No other settings yet. Add one on the left.</p>
           ) : (
-            <div className="divide-y divide-ink-100 border border-ink-100 rounded-xl">
-              {settings.map((setting: any) => (
-                <div key={setting.id} className="p-4 space-y-3">
-                  <form action={handleUpsert} className="space-y-2">
+            <ul className="divide-y divide-ink-200/70">
+              {otherSettings.map((setting: {
+                id: string
+                setting_name: string
+                setting_value: string | null
+                data_type: string
+              }) => (
+                <li key={setting.id} className="py-4 first:pt-0 last:pb-0">
+                  <form action={handleUpsert} className="space-y-3">
                     <input type="hidden" name="id" value={setting.id} />
-                    <label className="block text-xs font-bold text-ink-500">
-                      Setting Name
-                      <input
-                        type="text"
-                        name="setting_name"
-                        defaultValue={setting.setting_name}
-                        readOnly
-                        className="mt-1 w-full rounded-lg border border-ink-200 bg-ink-50 px-3 py-2 text-sm text-ink-800"
-                      />
-                    </label>
-                    <label className="block text-xs font-bold text-ink-500">
-                      Setting Value
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-ink-500">
+                          Name
+                        </span>
+                        <input
+                          type="text"
+                          name="setting_name"
+                          defaultValue={setting.setting_name}
+                          readOnly
+                          className={`${inputCls} bg-canvas/60`}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-ink-500">
+                          Type
+                        </span>
+                        <input
+                          type="text"
+                          name="data_type"
+                          defaultValue={setting.data_type}
+                          readOnly
+                          className={`${inputCls} bg-canvas/60`}
+                        />
+                      </label>
+                    </div>
+                    <label className="block">
+                      <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-ink-500">
+                        Value
+                      </span>
                       <input
                         type="text"
                         name="setting_value"
                         defaultValue={setting.setting_value ?? ''}
-                        className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-prime-500 focus:outline-none"
+                        className={inputCls}
                       />
                     </label>
-                    <label className="block text-xs font-bold text-ink-500">
-                      Data Type
-                      <input
-                        type="text"
-                        name="data_type"
-                        defaultValue={setting.data_type}
-                        readOnly
-                        className="mt-1 w-full rounded-lg border border-ink-200 bg-ink-50 px-3 py-2 text-sm text-ink-800"
-                      />
-                    </label>
-                    <div className="flex gap-2 pt-1">
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-prime-700 px-3 py-2 text-sm font-semibold text-white hover:bg-prime-800"
-                      >
-                        Update
-                      </button>
-                      <form action={handleDelete} className="inline">
-                        <input type="hidden" name="id" value={setting.id} />
-                        <button
-                          type="submit"
-                          className="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
-                        >
-                          Delete
-                        </button>
-                      </form>
-                    </div>
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-prime-700 px-3 py-2 text-xs font-bold text-paper hover:bg-prime-800"
+                    >
+                      Update
+                    </button>
                   </form>
-                </div>
+                  <form action={handleDelete} className="mt-2">
+                    <input type="hidden" name="id" value={setting.id} />
+                    <button type="submit" className="text-xs font-semibold text-flash-600 hover:text-flash-700">
+                      Delete
+                    </button>
+                  </form>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </div>
+        </SettingsPanel>
       </div>
     </div>
   )

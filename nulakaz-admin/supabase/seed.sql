@@ -28,12 +28,15 @@ select p.id,
 from products p
 on conflict (product_id) do nothing;
 
--- Seed reels (these slugs become /reel/<slug> URLs)
-insert into reels (slug, platform, external_url, thumbnail_url, caption, posted_at) values
-  ('rice-haul-may',     'instagram', 'https://www.instagram.com/reel/sample-rice/',     'https://picsum.photos/seed/reel-rice/800/1000',     'Rice + oil bundle for the month — flash drop only',     now() - interval '2 days'),
-  ('breakfast-combo',   'tiktok',    'https://www.tiktok.com/@primemu/video/sample-bf', 'https://picsum.photos/seed/reel-bf/800/1000',       'The Mauritian breakfast bundle every tabagie needs',    now() - interval '1 day'),
-  ('tabagie-restock',   'instagram', 'https://www.instagram.com/reel/sample-tabagie/',  'https://picsum.photos/seed/reel-tab/800/1000',      'Wholesale restock pack — DM for delivery',              now())
-on conflict (slug) do nothing;
+-- Seed reels (these slugs become /reel/<slug> URLs + in-app shoppable feed)
+insert into reels (slug, platform, external_url, thumbnail_url, video_url, caption, posted_at) values
+  ('rice-haul-may',     'instagram', 'https://www.instagram.com/reel/sample-rice/',     'https://picsum.photos/seed/reel-rice/800/1000',     'https://videos.pexels.com/video-files/5730222/5730222-uhd_1440_2732_25fps.mp4',     'Rice + oil bundle for the month — flash drop only',     now() - interval '2 days'),
+  ('breakfast-combo',   'tiktok',    'https://www.tiktok.com/@primemu/video/sample-bf', 'https://picsum.photos/seed/reel-bf/800/1000',       'https://videos.pexels.com/video-files/5594377/5594377-uhd_1440_2562_25fps.mp4',       'The Mauritian breakfast bundle every tabagie needs',    now() - interval '1 day'),
+  ('tabagie-restock',   'instagram', 'https://www.instagram.com/reel/sample-tabagie/',  'https://picsum.photos/seed/reel-tab/800/1000',      'https://videos.pexels.com/video-files/6981411/6981411-hd_720_1366_25fps.mp4',      'Wholesale restock pack — DM for delivery',              now())
+on conflict (slug) do update set
+  video_url = excluded.video_url,
+  thumbnail_url = excluded.thumbnail_url,
+  caption = excluded.caption;
 
 -- Map reels -> products
 with r as (select * from reels), p as (select * from products)

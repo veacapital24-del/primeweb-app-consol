@@ -9,6 +9,7 @@ type ReelInput = {
   platform: 'instagram' | 'tiktok' | 'facebook'
   external_url: string | null
   thumbnail_url: string | null
+  video_url: string | null
   caption: string | null
   posted_at: string | null
   active: boolean
@@ -34,6 +35,7 @@ function fromForm(form: FormData): ReelInput {
     platform,
     external_url: str('external_url'),
     thumbnail_url: str('thumbnail_url'),
+    video_url: str('video_url'),
     caption: str('caption'),
     posted_at: str('posted_at'),
     active: form.get('active') === 'on',
@@ -59,6 +61,7 @@ export async function createReel(form: FormData) {
       platform: input.platform,
       external_url: input.external_url,
       thumbnail_url: input.thumbnail_url,
+      video_url: input.video_url,
       caption: input.caption,
       posted_at: input.posted_at,
       active: input.active,
@@ -81,6 +84,7 @@ export async function updateReel(id: string, form: FormData) {
       platform: input.platform,
       external_url: input.external_url,
       thumbnail_url: input.thumbnail_url,
+      video_url: input.video_url,
       caption: input.caption,
       posted_at: input.posted_at,
       active: input.active,

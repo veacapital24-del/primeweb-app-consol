@@ -107,6 +107,7 @@ export type Reel = {
   platform: 'instagram' | 'tiktok' | 'facebook'
   external_url: string | null
   thumbnail_url: string | null
+  video_url: string | null
   caption: string | null
   posted_at: string | null
   active: boolean
