@@ -11,6 +11,7 @@ import {
   Toggle,
   inputCls,
 } from '@/components/admin/ui'
+import { FileUpload } from '@/components/admin/FileUpload'
 
 type Mode = 'create' | 'edit'
 
@@ -167,30 +168,30 @@ export function ReelForm({ mode, reel, initialProductIds = [], allProducts }: Pr
                 />
               </Field>
             </div>
-            <Field label="Thumbnail URL" hint="Vertical 9:16 poster — shown while video loads" className="mt-4">
-              <input
+            <div className="mt-4">
+              <p className="mb-1.5 text-xs font-semibold text-ink-700">Thumbnail <span className="font-normal text-ink-500">(vertical 9:16 poster)</span></p>
+              <FileUpload
                 name="thumbnail_url"
-                type="url"
+                bucket="reel-media"
                 value={thumbnail}
-                onChange={(e) => setThumbnail(e.target.value)}
-                placeholder="https://…"
-                className={inputCls}
+                onChange={setThumbnail}
+                accept="image"
+                aspectRatio="aspect-[9/16] max-h-56"
+                hint="JPG, PNG, or WebP · max 5 MB"
               />
-            </Field>
-            <Field
-              label="Video URL"
-              hint="Direct MP4 / HLS (.m3u8) / MOV / WebM — or a URL from Supabase Storage, Bunny CDN (b-cdn.net), Mux (stream.mux.com), Cloudflare Stream, Vimeo CDN (vimeocdn.com), Pexels, or AWS CloudFront. Social page links (TikTok, Instagram, YouTube) are blocked."
-              className="mt-4"
-            >
-              <input
+            </div>
+            <div className="mt-4">
+              <p className="mb-1.5 text-xs font-semibold text-ink-700">Video file <span className="font-normal text-ink-500">(MP4 / MOV / WebM)</span></p>
+              <FileUpload
                 name="video_url"
-                type="url"
+                bucket="reel-media"
                 value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://…/reel.mp4"
-                className={inputCls}
+                onChange={setVideoUrl}
+                accept="video"
+                aspectRatio="aspect-video"
+                hint="MP4, MOV, or WebM · max 500 MB · also accepts direct CDN URLs (Bunny, Mux, Cloudflare Stream, Vimeo CDN)"
               />
-            </Field>
+            </div>
           </GlassCard>
 
           <GlassCard title={`Linked products${selected.length > 0 ? ` · ${selected.length}` : ''}`}>
@@ -282,48 +283,6 @@ export function ReelForm({ mode, reel, initialProductIds = [], allProducts }: Pr
             )}
           </GlassCard>
 
-          <GlassCard title="Thumbnail preview">
-            <div className="aspect-[9/16] overflow-hidden rounded-xl bg-paper-dim ring-1 ring-ink-300/60">
-              {thumbnail ? (
-                <img src={thumbnail} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <div className="grid h-full place-items-center text-xs text-ink-500">Paste a thumbnail URL above</div>
-              )}
-            </div>
-          </GlassCard>
-
-          <GlassCard title="Video preview">
-            {videoUrl ? (
-              <div className="overflow-hidden rounded-xl bg-ink-950 ring-1 ring-ink-300/40">
-                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                <video
-                  key={videoUrl}
-                  src={videoUrl}
-                  controls
-                  playsInline
-                  className="w-full max-h-64 object-contain"
-                  onError={(e) => {
-                    const el = e.currentTarget
-                    el.style.display = 'none'
-                    const msg = el.nextElementSibling as HTMLElement | null
-                    if (msg) msg.style.display = 'flex'
-                  }}
-                />
-                <div
-                  className="hidden h-24 items-center justify-center text-center text-xs text-ink-400 px-4"
-                >
-                  Video could not be loaded. Verify the URL is a direct media file from a supported host.
-                </div>
-              </div>
-            ) : (
-              <div className="flex h-24 items-center justify-center rounded-xl bg-paper-dim text-xs text-ink-500 ring-1 ring-ink-300/40">
-                Paste a video URL above
-              </div>
-            )}
-            <p className="mt-2 text-[11px] text-ink-500 leading-relaxed">
-              Supported: MP4, HLS, MOV, WebM via Supabase Storage, Bunny CDN, Mux, Cloudflare Stream, Vimeo CDN, Pexels, CloudFront.
-            </p>
-          </GlassCard>
 
           {mode === 'edit' && reel && (
             <GlassCard title="Danger">
