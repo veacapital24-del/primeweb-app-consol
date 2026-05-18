@@ -108,8 +108,43 @@ export function ReelForm({ mode, reel, initialProductIds = [], allProducts }: Pr
       {error && <AlertError message={error} />}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        {/* ── Identity + Products ── */}
+        {/* ── Left column ── */}
         <div className="space-y-6">
+
+          {/* Media upload — first so it's impossible to miss */}
+          <GlassCard title="Media" desc="Upload your thumbnail and video file directly from your device.">
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-500">
+                  Thumbnail <span className="normal-case font-normal tracking-normal text-ink-400">(9:16 cover image)</span>
+                </p>
+                <FileUpload
+                  name="thumbnail_url"
+                  bucket="reel-media"
+                  value={thumbnail}
+                  onChange={setThumbnail}
+                  accept="image"
+                  aspectRatio="aspect-[9/16]"
+                  hint="JPG, PNG, or WebP · max 5 MB"
+                />
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-500">
+                  Video file <span className="normal-case font-normal tracking-normal text-ink-400">(MP4 / MOV / WebM)</span>
+                </p>
+                <FileUpload
+                  name="video_url"
+                  bucket="reel-media"
+                  value={videoUrl}
+                  onChange={setVideoUrl}
+                  accept="video"
+                  aspectRatio="aspect-[9/16]"
+                  hint="MP4, MOV, WebM · max 500 MB"
+                />
+              </div>
+            </div>
+          </GlassCard>
+
           <GlassCard title="Identity">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Slug" required hint={`Bio link: ${bioLink}`}>
@@ -167,30 +202,6 @@ export function ReelForm({ mode, reel, initialProductIds = [], allProducts }: Pr
                   className={inputCls}
                 />
               </Field>
-            </div>
-            <div className="mt-4">
-              <p className="mb-1.5 text-xs font-semibold text-ink-700">Thumbnail <span className="font-normal text-ink-500">(vertical 9:16 poster)</span></p>
-              <FileUpload
-                name="thumbnail_url"
-                bucket="reel-media"
-                value={thumbnail}
-                onChange={setThumbnail}
-                accept="image"
-                aspectRatio="aspect-[9/16] max-h-56"
-                hint="JPG, PNG, or WebP · max 5 MB"
-              />
-            </div>
-            <div className="mt-4">
-              <p className="mb-1.5 text-xs font-semibold text-ink-700">Video file <span className="font-normal text-ink-500">(MP4 / MOV / WebM)</span></p>
-              <FileUpload
-                name="video_url"
-                bucket="reel-media"
-                value={videoUrl}
-                onChange={setVideoUrl}
-                accept="video"
-                aspectRatio="aspect-video"
-                hint="MP4, MOV, or WebM · max 500 MB · also accepts direct CDN URLs (Bunny, Mux, Cloudflare Stream, Vimeo CDN)"
-              />
             </div>
           </GlassCard>
 

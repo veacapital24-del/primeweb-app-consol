@@ -92,7 +92,7 @@ export function FileUpload({
 
       {/* Drop zone / preview */}
       <div
-        className={`relative ${aspectRatio} overflow-hidden rounded-2xl border-2 border-dashed border-ink-300/70 bg-canvas/60 transition hover:border-prime-400/80`}
+        className={`relative ${aspectRatio} min-h-[200px] overflow-hidden rounded-2xl border-2 border-dashed border-ink-300/70 bg-canvas/60 transition hover:border-prime-400/80`}
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
       >
@@ -123,16 +123,19 @@ export function FileUpload({
               </>
             ) : (
               <>
-                <div className="grid h-12 w-12 place-items-center rounded-xl bg-prime-50 text-prime-600 ring-1 ring-prime-200/70">
-                  <IconUpload />
+                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-prime-50 text-prime-600 ring-1 ring-prime-200/70">
+                  {accept === 'video' ? <IconVideo /> : <IconUpload />}
                 </div>
-                <p className="text-xs font-semibold text-ink-700">
-                  Click or drag &amp; drop to upload
+                <p className="text-sm font-bold text-ink-800">
+                  {accept === 'video' ? 'Upload video' : 'Upload image'}
                 </p>
-                <p className="text-[11px] text-ink-500">
-                  {accept === 'image' ? 'JPG, PNG, WebP up to 5 MB' :
-                   accept === 'video' ? 'MP4, MOV, WebM up to 500 MB' :
-                   'Image or video file'}
+                <p className="text-xs font-semibold text-prime-700 underline-offset-2 hover:underline">
+                  Click to browse files
+                </p>
+                <p className="text-[11px] text-ink-500 mt-1">
+                  {accept === 'image' ? 'JPG, PNG, WebP · max 5 MB' :
+                   accept === 'video' ? 'MP4, MOV, WebM · max 500 MB' :
+                   'Image or video · drag & drop or click'}
                 </p>
               </>
             )}
@@ -223,6 +226,14 @@ function IconUpload({ className = 'h-5 w-5' }: { className?: string }) {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="17 8 12 3 7 8" />
       <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  )
+}
+function IconVideo() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.862v6.276a1 1 0 0 1-1.447.931L15 14v-4Z" />
+      <rect x="2" y="6" width="13" height="12" rx="2" />
     </svg>
   )
 }
