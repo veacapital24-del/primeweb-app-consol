@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { browserClient } from '@/lib/supabase'
+import { browserClient } from '@/lib/supabase-browser'
 
 type Accept = 'image' | 'video' | 'image+video'
 
